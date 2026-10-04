@@ -4,6 +4,8 @@
 		<OutputType>Exe</OutputType>
 		<AssemblyName>MimaEmuPrinter.TestClient</AssemblyName>
 		<RootNamespace>MimaEmuPrinter.TestClient</RootNamespace>
+		<AssemblyVersion>2026.10.4.1</AssemblyVersion>
+		<FileVersion>2026.10.4.1</FileVersion>
 	</PropertyGroup>
 
 </Project>

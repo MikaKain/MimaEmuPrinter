@@ -31,10 +31,11 @@ Options de ligne de commande, pour l'automatisation : `--start` (écoute dès le
 
 ## Utilisation
 
-1. Choisir l'adresse IP d'écoute (par défaut la première IPv4 non loopback ; `127.0.0.1` et `0.0.0.0` sont proposées) et le port, puis **Démarrer**. IP et port sont verrouillés tant que l'écoute dure. L'indicateur affiche *En écoute*, *Occupée* (connexion de caisse ouverte) ou *Arrêtée*.
-2. Choisir la laize : 58 mm / 32 colonnes, 80 mm / 42 colonnes, 80 mm / 48 colonnes. Le changement s'applique au job suivant.
-3. Activer les interrupteurs de panne, à chaud. Les conséquences sont imposées : *Plus de papier* allume *Arrêt fin de papier*, *Erreur* et *Offline* ; *Capot ouvert* allume *Offline* ; *Erreur massicot / récupérable / irrécupérable* allument *Erreur* et *Offline*. Un interrupteur impliqué est affiché allumé et verrouillé tant que sa cause est active. *Tout effacer* revient à l'état en ligne.
-4. Le ticket s'affiche au fil de la réception, reste 5 secondes après la fin du job (compte à rebours), puis revient à *En attente*. *Garder* le fige jusqu'au job suivant ou jusqu'à *Relâcher*.
+1. **Au démarrage** (service arrêté), la fenêtre ne montre que les réglages : adresse IP d'écoute (par défaut la première IPv4 non loopback ; `127.0.0.1` et `0.0.0.0` sont proposées), port et laize (58 mm / 32 colonnes, 80 mm / 42 colonnes, 80 mm / 48 colonnes), puis **Démarrer**. Ces trois réglages ne se changent plus tant que le service tourne ; pour les modifier, arrêter puis redémarrer. Un échec de bind (port pris) apparaît dans le journal.
+2. **Service démarré**, la fenêtre se réduit à l'affichage temps réel et au journal des arrivées. L'indicateur affiche *En écoute* ou *Occupée* (connexion de caisse ouverte), avec l'IP, le port et la laize en sous-titre.
+   - Le ticket s'affiche au fil de la réception, reste 5 secondes après la fin du job (compte à rebours), puis revient à *En attente*. *Garder* le fige jusqu'au job suivant ou jusqu'à *Relâcher*.
+   - **Événements** ouvre la page des neuf pannes dans une fenêtre séparée, à garder à côté. Effet immédiat, y compris pendant une connexion. Les conséquences sont imposées : *Plus de papier* allume *Arrêt fin de papier*, *Erreur* et *Offline* ; *Capot ouvert* allume *Offline* ; *Erreur massicot / récupérable / irrécupérable* allument *Erreur* et *Offline*. Un interrupteur impliqué est affiché allumé et verrouillé tant que sa cause est active. *Tout effacer* revient à l'état en ligne.
+   - **Arrêter le service** ferme l'écoute et la connexion ouverte, et ramène l'écran de réglages.
 
 ## Architecture
 

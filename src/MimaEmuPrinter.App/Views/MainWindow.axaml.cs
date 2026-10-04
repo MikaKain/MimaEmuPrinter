@@ -3,12 +3,15 @@ namespace MimaEmuPrinter.App.Views
 	using System;
 	using Avalonia;
 	using Avalonia.Controls;
+	using Avalonia.Interactivity;
 	using Avalonia.Platform;
 	using Avalonia.Threading;
 	using ViewModels;
 
 	public sealed partial class MainWindow : Window
 	{
+		private EventsWindow? eventsWindow;
+
 		public MainWindow()
 		{
 			InitializeComponent();
@@ -46,6 +49,21 @@ namespace MimaEmuPrinter.App.Views
 				viewModel.JournalChanged += (s, args) => Dispatcher.UIThread.Post(ScrollJournalToEnd, DispatcherPriority.Background);
 				viewModel.TicketContentChanged += (s, args) => Dispatcher.UIThread.Post(ScrollTicketToEnd, DispatcherPriority.Background);
 			}
+		}
+
+		private void OnShowEventsClick(Object? sender, RoutedEventArgs e)
+		{
+			if (eventsWindow != null)
+			{
+				eventsWindow.Activate();
+				return;
+			}
+
+			EventsWindow window = new EventsWindow { DataContext = DataContext };
+			window.Closed += (s, args) => eventsWindow = null;
+			eventsWindow = window;
+			window.Show(this);
+			window.Position = new PixelPoint(Position.X + (Int32)(Bounds.Width * RenderScaling) + 8, Position.Y);
 		}
 
 		private void ScrollJournalToEnd()

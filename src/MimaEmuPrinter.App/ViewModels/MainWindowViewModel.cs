@@ -147,7 +147,7 @@ namespace MimaEmuPrinter.App.ViewModels
 					return;
 				}
 
-				// Applies to the next job: the ticket being rendered keeps the paper it started with.
+				// The paper is chosen before the start; a job always keeps the paper it started with.
 				Volatile.Write(ref currentPaper, (Int32)value.Width);
 				settings.Paper = value.Width;
 
@@ -166,6 +166,21 @@ namespace MimaEmuPrinter.App.ViewModels
 		public Boolean CanEditConnection
 		{
 			get { return !IsRunning; }
+		}
+
+		/// <summary>Subtitle of the header: the listening endpoint and paper while running.</summary>
+		public String ConnectionSummary
+		{
+			get
+			{
+				IPEndPoint? endPoint = server.LocalEndPoint;
+				if (!IsRunning || endPoint == null)
+				{
+					return "Imprimante thermique virtuelle ESC/POS";
+				}
+
+				return String.Format(CultureInfo.InvariantCulture, "{0}:{1} · {2}", endPoint.Address, endPoint.Port, selectedPaper.DisplayName);
+			}
 		}
 
 		public String StartStopText
@@ -365,6 +380,7 @@ namespace MimaEmuPrinter.App.ViewModels
 				listenerState = server.State;
 				OnPropertyChanged(nameof(IsRunning));
 				OnPropertyChanged(nameof(CanEditConnection));
+				OnPropertyChanged(nameof(ConnectionSummary));
 				OnPropertyChanged(nameof(StartStopText));
 				OnPropertyChanged(nameof(StatusText));
 				OnPropertyChanged(nameof(StatusBrush));
