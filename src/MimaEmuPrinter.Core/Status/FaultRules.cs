@@ -26,19 +26,13 @@ namespace MimaEmuPrinter.Core.Status
 		/// <summary>Faults that are switched on automatically when <paramref name="fault"/> is on.</summary>
 		public static PrinterFaults GetConsequences(PrinterFaults fault)
 		{
-			switch (fault)
+			return fault switch
 			{
-				case PrinterFaults.PaperOut:
-					return PrinterFaults.PaperEndStop | PrinterFaults.Error | PrinterFaults.Offline;
-				case PrinterFaults.CoverOpen:
-					return PrinterFaults.Offline;
-				case PrinterFaults.CutterError:
-				case PrinterFaults.RecoverableError:
-				case PrinterFaults.UnrecoverableError:
-					return PrinterFaults.Error | PrinterFaults.Offline;
-				default:
-					return PrinterFaults.None;
-			}
+				PrinterFaults.PaperOut => PrinterFaults.PaperEndStop | PrinterFaults.Error | PrinterFaults.Offline,
+				PrinterFaults.CoverOpen => PrinterFaults.Offline,
+				PrinterFaults.CutterError or PrinterFaults.RecoverableError or PrinterFaults.UnrecoverableError => PrinterFaults.Error | PrinterFaults.Offline,
+				_ => PrinterFaults.None,
+			};
 		}
 
 		/// <summary>Union of the consequences of every fault set in <paramref name="faults"/>.</summary>
@@ -46,108 +40,70 @@ namespace MimaEmuPrinter.Core.Status
 		{
 			PrinterFaults implied = PrinterFaults.None;
 			foreach (PrinterFaults fault in All)
-			{
 				if ((faults & fault) != 0)
-				{
 					implied |= GetConsequences(fault);
-				}
-			}
 
 			return implied;
 		}
 
 		public static String GetLabel(PrinterFaults fault)
 		{
-			switch (fault)
+			return fault switch
 			{
-				case PrinterFaults.Offline:
-					return "Offline";
-				case PrinterFaults.CoverOpen:
-					return "Capot ouvert";
-				case PrinterFaults.PaperEndStop:
-					return "Arrêt fin de papier";
-				case PrinterFaults.Error:
-					return "Erreur";
-				case PrinterFaults.RecoverableError:
-					return "Erreur récupérable";
-				case PrinterFaults.CutterError:
-					return "Erreur massicot";
-				case PrinterFaults.UnrecoverableError:
-					return "Erreur irrécupérable";
-				case PrinterFaults.PaperNearEnd:
-					return "Papier bientôt fini";
-				case PrinterFaults.PaperOut:
-					return "Plus de papier";
-				default:
-					return fault.ToString();
-			}
+				PrinterFaults.Offline => "Offline",
+				PrinterFaults.CoverOpen => "Capot ouvert",
+				PrinterFaults.PaperEndStop => "Arrêt fin de papier",
+				PrinterFaults.Error => "Erreur",
+				PrinterFaults.RecoverableError => "Erreur récupérable",
+				PrinterFaults.CutterError => "Erreur massicot",
+				PrinterFaults.UnrecoverableError => "Erreur irrécupérable",
+				PrinterFaults.PaperNearEnd => "Papier bientôt fini",
+				PrinterFaults.PaperOut => "Plus de papier",
+				_ => fault.ToString(),
+			};
 		}
 
 		public static String GetEffect(PrinterFaults fault)
 		{
-			switch (fault)
+			return fault switch
 			{
-				case PrinterFaults.Offline:
-					return "Imprimante hors ligne";
-				case PrinterFaults.CoverOpen:
-					return "Capot papier ouvert";
-				case PrinterFaults.PaperEndStop:
-					return "Impression stoppée, plus de papier";
-				case PrinterFaults.Error:
-					return "Erreur présente";
-				case PrinterFaults.RecoverableError:
-					return "Surchauffe ou défaut rattrapable";
-				case PrinterFaults.CutterError:
-					return "Lame bloquée, assimilée bourrage";
-				case PrinterFaults.UnrecoverableError:
-					return "Défaut matériel";
-				case PrinterFaults.PaperNearEnd:
-					return "Near-end, impression encore possible";
-				case PrinterFaults.PaperOut:
-					return "Capteur fin de rouleau";
-				default:
-					return String.Empty;
-			}
+				PrinterFaults.Offline => "Imprimante hors ligne",
+				PrinterFaults.CoverOpen => "Capot papier ouvert",
+				PrinterFaults.PaperEndStop => "Impression stoppée, plus de papier",
+				PrinterFaults.Error => "Erreur présente",
+				PrinterFaults.RecoverableError => "Surchauffe ou défaut rattrapable",
+				PrinterFaults.CutterError => "Lame bloquée, assimilée bourrage",
+				PrinterFaults.UnrecoverableError => "Défaut matériel",
+				PrinterFaults.PaperNearEnd => "Near-end, impression encore possible",
+				PrinterFaults.PaperOut => "Capteur fin de rouleau",
+				_ => String.Empty,
+			};
 		}
 
 		public static String GetCommandHint(PrinterFaults fault)
 		{
-			switch (fault)
+			return fault switch
 			{
-				case PrinterFaults.Offline:
-					return "DLE EOT 1, bit 3";
-				case PrinterFaults.CoverOpen:
-					return "DLE EOT 2, bit 2 ; ASB octet 1 bit 5";
-				case PrinterFaults.PaperEndStop:
-					return "DLE EOT 2, bit 5";
-				case PrinterFaults.Error:
-					return "DLE EOT 2, bit 6";
-				case PrinterFaults.RecoverableError:
-					return "DLE EOT 3, bit 2";
-				case PrinterFaults.CutterError:
-					return "DLE EOT 3, bit 3";
-				case PrinterFaults.UnrecoverableError:
-					return "DLE EOT 3, bit 5";
-				case PrinterFaults.PaperNearEnd:
-					return "DLE EOT 4, bits 2 et 3";
-				case PrinterFaults.PaperOut:
-					return "DLE EOT 4, bits 5 et 6";
-				default:
-					return String.Empty;
-			}
+				PrinterFaults.Offline => "DLE EOT 1, bit 3",
+				PrinterFaults.CoverOpen => "DLE EOT 2, bit 2 ; ASB octet 1 bit 5",
+				PrinterFaults.PaperEndStop => "DLE EOT 2, bit 5",
+				PrinterFaults.Error => "DLE EOT 2, bit 6",
+				PrinterFaults.RecoverableError => "DLE EOT 3, bit 2",
+				PrinterFaults.CutterError => "DLE EOT 3, bit 3",
+				PrinterFaults.UnrecoverableError => "DLE EOT 3, bit 5",
+				PrinterFaults.PaperNearEnd => "DLE EOT 4, bits 2 et 3",
+				PrinterFaults.PaperOut => "DLE EOT 4, bits 5 et 6",
+				_ => String.Empty,
+			};
 		}
 
 		/// <summary>Comma-separated labels of the faults set in <paramref name="faults"/>, or "aucun".</summary>
 		public static String Describe(PrinterFaults faults)
 		{
-			List<String> labels = new List<String>();
+			var labels = new List<String>();
 			foreach (PrinterFaults fault in All)
-			{
 				if ((faults & fault) != 0)
-				{
 					labels.Add(GetLabel(fault));
-				}
-			}
 
 			return labels.Count == 0 ? "aucun" : String.Join(", ", labels);
 		}
@@ -159,39 +115,25 @@ namespace MimaEmuPrinter.Core.Status
 		public static String? GetBlockReason(PrinterFaults faults)
 		{
 			if ((faults & PrintingBlockers) == 0)
-			{
 				return null;
-			}
 
 			if ((faults & PrinterFaults.PaperOut) != 0)
-			{
 				return "plus de papier";
-			}
 
 			if ((faults & PrinterFaults.PaperEndStop) != 0)
-			{
 				return "arrêt fin de papier";
-			}
 
 			if ((faults & PrinterFaults.CoverOpen) != 0)
-			{
 				return "capot ouvert";
-			}
 
 			if ((faults & PrinterFaults.CutterError) != 0)
-			{
 				return "massicot";
-			}
 
 			if ((faults & PrinterFaults.UnrecoverableError) != 0)
-			{
 				return "erreur irrécupérable";
-			}
 
 			if ((faults & PrinterFaults.RecoverableError) != 0)
-			{
 				return "erreur récupérable";
-			}
 
 			return "hors ligne";
 		}

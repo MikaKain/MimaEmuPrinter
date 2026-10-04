@@ -29,11 +29,11 @@ namespace MimaEmuPrinter.App.Controls
 		private const Double MinimumPaperHeight = 140;
 		private const Double LineHeightFactor = 1.25;
 
-		private static readonly FontFamily MonoFamily = new FontFamily("avares://MimaEmuPrinter/Assets/Fonts#Liberation Mono");
-		private static readonly Typeface RegularFace = new Typeface(MonoFamily);
-		private static readonly Typeface BoldFace = new Typeface(MonoFamily, FontStyle.Normal, FontWeight.Bold);
-		private static readonly Pen PaperBorder = new Pen(new SolidColorBrush(Color.FromRgb(200, 200, 200)), 1);
-		private static readonly Pen CutPen = new Pen(Brushes.Gray, 1, new DashStyle(new Double[] { 4, 3 }, 0));
+		private static readonly FontFamily MonoFamily = new("avares://MimaEmuPrinter/Assets/Fonts#Liberation Mono");
+		private static readonly Typeface RegularFace = new(MonoFamily);
+		private static readonly Typeface BoldFace = new(MonoFamily, FontStyle.Normal, FontWeight.Bold);
+		private static readonly Pen PaperBorder = new(new SolidColorBrush(Color.FromRgb(200, 200, 200)), 1);
+		private static readonly Pen CutPen = new(Brushes.Gray, 1, new DashStyle(new Double[] { 4, 3 }, 0));
 		private static readonly IBrush BandBrush = new SolidColorBrush(Color.FromRgb(204, 204, 204));
 
 		private Double advancePerEm;

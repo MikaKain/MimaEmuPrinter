@@ -9,12 +9,12 @@ namespace MimaEmuPrinter.Core.Network
 	using System.Text;
 	using System.Threading;
 	using System.Threading.Tasks;
-	using MimaEmuPrinter.Core.Archive;
-	using MimaEmuPrinter.Core.Logging;
-	using MimaEmuPrinter.Core.Paper;
-	using MimaEmuPrinter.Core.Protocol;
-	using MimaEmuPrinter.Core.Rendering;
-	using MimaEmuPrinter.Core.Status;
+	using Archive;
+	using Logging;
+	using Paper;
+	using Protocol;
+	using Rendering;
+	using Status;
 
 	/// <summary>
 	/// One cash register connection: reads the ESC/POS stream, answers the status requests at once,
@@ -26,8 +26,8 @@ namespace MimaEmuPrinter.Core.Network
 		private const Int32 MaxBandLines = 12;
 		private const Int32 DotsPerBandLine = 30;
 
-		private readonly Object sync = new Object();
-		private readonly Object writeLock = new Object();
+		private readonly Object sync = new();
+		private readonly Object writeLock = new();
 		private readonly TcpClient client;
 		private readonly NetworkStream stream;
 		private readonly StatusEngine status;
@@ -38,8 +38,8 @@ namespace MimaEmuPrinter.Core.Network
 		private readonly PrinterServerOptions options;
 		private readonly Action<TicketUpdate> publish;
 		private readonly EscPosParser parser;
-		private readonly TicketBuilder builder = new TicketBuilder();
-		private readonly MemoryStream rawBuffer = new MemoryStream();
+		private readonly TicketBuilder builder = new();
+		private readonly MemoryStream rawBuffer = new();
 		private readonly String remoteAddress;
 		private readonly String remoteEndpoint;
 
@@ -73,7 +73,7 @@ namespace MimaEmuPrinter.Core.Network
 			parser = new EscPosParser(this);
 			builder.ColumnOverflow += OnColumnOverflow;
 
-			IPEndPoint? endPoint = client.Client.RemoteEndPoint as IPEndPoint;
+			var endPoint = client.Client.RemoteEndPoint as IPEndPoint;
 			remoteAddress = endPoint?.Address.ToString() ?? "?";
 			remoteEndpoint = endPoint?.ToString() ?? "?";
 		}
@@ -83,16 +83,16 @@ namespace MimaEmuPrinter.Core.Network
 			journal.Write("Connexion ouverte depuis " + remoteEndpoint);
 			status.Changed += OnStatusChanged;
 
-			ConnectionCloseReason reason = ConnectionCloseReason.Peer;
-			Stopwatch connectionClock = Stopwatch.StartNew();
-			Stopwatch idleClock = Stopwatch.StartNew();
-			Byte[] buffer = new Byte[4096];
+			var reason = ConnectionCloseReason.Peer;
+			var connectionClock = Stopwatch.StartNew();
+			var idleClock = Stopwatch.StartNew();
+			var buffer = new Byte[4096];
 			try
 			{
 				while (true)
 				{
-					TimeSpan wait = options.InactivityTimeout - idleClock.Elapsed;
-					Boolean waitingForJobEnd = false;
+					var wait = options.InactivityTimeout - idleClock.Elapsed;
+					var waitingForJobEnd = false;
 					if (HasOpenJob() && options.JobIdleTimeout < wait)
 					{
 						wait = options.JobIdleTimeout;
@@ -105,7 +105,7 @@ namespace MimaEmuPrinter.Core.Network
 					}
 
 					Int32 read;
-					using (CancellationTokenSource readSource = CancellationTokenSource.CreateLinkedTokenSource(serverToken))
+					using (var readSource = CancellationTokenSource.CreateLinkedTokenSource(serverToken))
 					{
 						readSource.CancelAfter(wait);
 						try

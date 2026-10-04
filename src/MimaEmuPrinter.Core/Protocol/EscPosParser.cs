@@ -24,7 +24,7 @@ namespace MimaEmuPrinter.Core.Protocol
 		private const Int32 MaxPendingLength = 70000;
 		private const Int32 MaxTabStopsLength = 34;
 
-		private static readonly Dictionary<Byte, Int32> EscParameterCounts = new Dictionary<Byte, Int32>
+		private static readonly Dictionary<Byte, Int32> EscParameterCounts = new()
 		{
 			{ (Byte)'@', 0 }, { (Byte)'!', 1 }, { (Byte)'a', 1 }, { (Byte)'E', 1 }, { (Byte)'-', 1 },
 			{ (Byte)'t', 1 }, { (Byte)'d', 1 }, { (Byte)'J', 1 }, { (Byte)'p', 3 }, { (Byte)'2', 0 },
@@ -36,7 +36,7 @@ namespace MimaEmuPrinter.Core.Protocol
 			{ (Byte)'m', 0 },
 		};
 
-		private static readonly Dictionary<Byte, Int32> GsParameterCounts = new Dictionary<Byte, Int32>
+		private static readonly Dictionary<Byte, Int32> GsParameterCounts = new()
 		{
 			{ (Byte)'!', 1 }, { (Byte)'a', 1 }, { (Byte)'r', 1 }, { (Byte)'I', 1 }, { (Byte)'B', 1 },
 			{ (Byte)'H', 1 }, { (Byte)'f', 1 }, { (Byte)'h', 1 }, { (Byte)'w', 1 }, { (Byte)'/', 1 },
@@ -45,7 +45,7 @@ namespace MimaEmuPrinter.Core.Protocol
 		};
 
 		private readonly IEscPosHandler handler;
-		private readonly List<Byte> pending = new List<Byte>(64);
+		private readonly List<Byte> pending = new(64);
 		private Int64 skipRemaining;
 		private String qrData = String.Empty;
 
@@ -56,10 +56,8 @@ namespace MimaEmuPrinter.Core.Protocol
 
 		public void Feed(ReadOnlySpan<Byte> data)
 		{
-			for (Int32 index = 0; index < data.Length; index++)
-			{
+			for (var index = 0; index < data.Length; index++)
 				Feed(data[index]);
-			}
 		}
 
 		public void Feed(Byte value)
@@ -133,39 +131,28 @@ namespace MimaEmuPrinter.Core.Protocol
 		private Int32 GetNeededLength()
 		{
 			if (pending.Count < 2)
-			{
 				return 2;
-			}
 
-			Byte op = pending[1];
-			switch (pending[0])
+			var op = pending[1];
+			return pending[0] switch
 			{
-				case Esc:
-					return GetEscLength(op);
-				case Gs:
-					return GetGsLength(op);
-				case Dle:
-					return GetDleLength(op);
-				case Fs:
-					return GetFsLength(op);
-				default:
-					return pending.Count;
-			}
+				Esc => GetEscLength(op),
+				Gs => GetGsLength(op),
+				Dle => GetDleLength(op),
+				Fs => GetFsLength(op),
+				_ => pending.Count,
+			};
 		}
 
 		private Int32 GetEscLength(Byte op)
 		{
-			switch (op)
+			return op switch
 			{
-				case (Byte)'*':
-					return 5;
-				case (Byte)'D':
-					return pending[pending.Count - 1] == Nul || pending.Count >= MaxTabStopsLength ? pending.Count : pending.Count + 1;
-				case (Byte)'c':
-					return 4;
-				default:
-					return 2 + (EscParameterCounts.TryGetValue(op, out Int32 count) ? count : 0);
-			}
+				(Byte)'*' => 5,
+				(Byte)'D' => pending[pending.Count - 1] == Nul || pending.Count >= MaxTabStopsLength ? pending.Count : pending.Count + 1,
+				(Byte)'c' => 4,
+				_ => 2 + (EscParameterCounts.TryGetValue(op, out Int32 count) ? count : 0),
+			};
 		}
 
 		private Int32 GetGsLength(Byte op)
@@ -174,10 +161,7 @@ namespace MimaEmuPrinter.Core.Protocol
 			{
 				case (Byte)'V':
 					if (pending.Count < 3)
-					{
 						return 3;
-					}
-
 					return pending[2] == 65 || pending[2] == 66 || pending[2] == 97 || pending[2] == 98 ? 4 : 3;
 				case (Byte)'k':
 					return GetBarcodeLength();
@@ -187,10 +171,7 @@ namespace MimaEmuPrinter.Core.Protocol
 					return 7;
 				case (Byte)'v':
 					if (pending.Count < 3)
-					{
 						return 3;
-					}
-
 					return pending[2] == (Byte)'0' ? 8 : 3;
 				case (Byte)'*':
 					return 4;
@@ -202,52 +183,36 @@ namespace MimaEmuPrinter.Core.Protocol
 		private Int32 GetBarcodeLength()
 		{
 			if (pending.Count < 3)
-			{
 				return 3;
-			}
 
-			Byte format = pending[2];
+			var format = pending[2];
 			if (format <= 6)
-			{
 				return pending[pending.Count - 1] == Nul && pending.Count > 3 ? pending.Count : Math.Min(pending.Count + 1, MaxPendingLength);
-			}
 
 			if (format >= 65 && format <= 73)
-			{
 				return pending.Count < 4 ? 4 : 4 + pending[3];
-			}
 
 			return 3;
 		}
 
 		private static Int32 GetDleLength(Byte op)
 		{
-			switch (op)
+			return op switch
 			{
-				case 0x04:
-				case 0x05:
-					return 3;
-				default:
-					return 2;
-			}
+				0x04 or 0x05 => 3,
+				_ => 2,
+			};
 		}
 
 		private Int32 GetFsLength(Byte op)
 		{
-			switch (op)
+			return op switch
 			{
-				case (Byte)'(':
-					return pending.Count < 5 ? 5 : 5 + ReadLength16(3);
-				case (Byte)'S':
-					return 4;
-				case (Byte)'!':
-				case (Byte)'-':
-				case (Byte)'C':
-				case (Byte)'W':
-					return 3;
-				default:
-					return 2;
-			}
+				(Byte)'(' => pending.Count < 5 ? 5 : 5 + ReadLength16(3),
+				(Byte)'S' => 4,
+				(Byte)'!' or (Byte)'-' or (Byte)'C' or (Byte)'W' => 3,
+				_ => 2,
+			};
 		}
 
 		private Int32 ReadLength16(Int32 index)
@@ -372,7 +337,7 @@ namespace MimaEmuPrinter.Core.Protocol
 
 		private void DispatchBarcode()
 		{
-			Byte format = pending[2];
+			var format = pending[2];
 			if (format <= 6)
 			{
 				// Format A: m d1...dk NUL.
@@ -392,14 +357,14 @@ namespace MimaEmuPrinter.Core.Protocol
 
 		private void DispatchGsParenthesis()
 		{
-			Int32 length = ReadLength16(3);
+			var length = ReadLength16(3);
 			if (pending[2] != (Byte)'k' || length < 2)
 			{
 				handler.IgnoreCommand(Describe());
 				return;
 			}
 
-			Byte function = pending[6];
+			var function = pending[6];
 			if (pending[5] != 49)
 			{
 				handler.IgnoreCommand(Describe());
@@ -445,37 +410,25 @@ namespace MimaEmuPrinter.Core.Protocol
 
 		private String DecodeText(Int32 start, Int32 end)
 		{
-			Int32 count = Math.Max(0, Math.Min(end, pending.Count) - start);
-			Byte[] bytes = new Byte[count];
+			var count = Math.Max(0, Math.Min(end, pending.Count) - start);
+			var bytes = new Byte[count];
 			pending.CopyTo(start, bytes, 0, count);
 			return Encoding.UTF8.GetString(bytes);
 		}
 
 		private String Describe()
 		{
-			String prefix;
-			switch (pending[0])
+			String prefix = pending[0] switch
 			{
-				case Esc:
-					prefix = "ESC";
-					break;
-				case Gs:
-					prefix = "GS";
-					break;
-				case Dle:
-					prefix = "DLE";
-					break;
-				default:
-					prefix = "FS";
-					break;
-			}
-
-			Byte op = pending[1];
-			String opText = op >= 0x21 && op <= 0x7E ? ((Char)op).ToString() : String.Format("0x{0:X2}", op);
+				Esc => "ESC",
+				Gs => "GS",
+				Dle => "DLE",
+				_ => "FS",
+			};
+			var op = pending[1];
+			var opText = op >= 0x21 && op <= 0x7E ? ((Char)op).ToString() : String.Format("0x{0:X2}", op);
 			if (pending[0] == Gs && op == (Byte)'(' && pending.Count > 2)
-			{
 				opText += " " + (Char)pending[2];
-			}
 
 			return prefix + " " + opText;
 		}

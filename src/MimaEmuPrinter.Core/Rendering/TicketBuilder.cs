@@ -2,8 +2,8 @@ namespace MimaEmuPrinter.Core.Rendering
 {
 	using System;
 	using System.Collections.Generic;
-	using MimaEmuPrinter.Core.Paper;
-	using MimaEmuPrinter.Core.Protocol;
+	using Paper;
+	using Protocol;
 
 	public sealed class ColumnOverflowEventArgs : EventArgs
 	{
@@ -35,8 +35,8 @@ namespace MimaEmuPrinter.Core.Rendering
 		private const Int32 TabWidth = 8;
 		private const String OverflowMarker = "»";
 
-		private readonly List<TicketLine> lines = new List<TicketLine>();
-		private readonly List<TicketRun> runs = new List<TicketRun>();
+		private readonly List<TicketLine> lines = [];
+		private readonly List<TicketRun> runs = [];
 
 		private Int32 columns = PaperProfile.Mm80Col42.Columns;
 		private Int32 logicalColumns;
@@ -121,24 +121,14 @@ namespace MimaEmuPrinter.Core.Rendering
 		public void SetAlignment(Byte value)
 		{
 			if (logicalColumns > 0)
-			{
 				return;
-			}
 
-			switch (value)
+			alignment = value switch
 			{
-				case 1:
-				case 49:
-					alignment = TicketAlignment.Center;
-					break;
-				case 2:
-				case 50:
-					alignment = TicketAlignment.Right;
-					break;
-				default:
-					alignment = TicketAlignment.Left;
-					break;
-			}
+				1 or 49 => TicketAlignment.Center,
+				2 or 50 => TicketAlignment.Right,
+				_ => TicketAlignment.Left,
+			};
 		}
 
 		public void SetCodePage(Byte value)
@@ -165,9 +155,7 @@ namespace MimaEmuPrinter.Core.Rendering
 		public void CarriageReturn()
 		{
 			if (logicalColumns == 0)
-			{
 				return;
-			}
 
 			CommitLine(false);
 			afterCarriageReturn = true;
@@ -175,21 +163,17 @@ namespace MimaEmuPrinter.Core.Rendering
 
 		public void Tab()
 		{
-			Int32 spaces = TabWidth - (logicalColumns % TabWidth);
-			for (Int32 index = 0; index < spaces; index++)
-			{
+			var spaces = TabWidth - (logicalColumns % TabWidth);
+			for (var index = 0; index < spaces; index++)
 				AppendChar(' ');
-			}
 		}
 
 		public void FeedLines(Int32 count)
 		{
 			CommitIfPending();
-			Int32 blank = Math.Min(Math.Max(count, 0), MaxFeedLines);
-			for (Int32 index = 0; index < blank; index++)
-			{
+			var blank = Math.Min(Math.Max(count, 0), MaxFeedLines);
+			for (var index = 0; index < blank; index++)
 				AddLine(new TicketLine(TicketLineKind.Text, alignment, Array.Empty<TicketRun>()));
-			}
 
 			version++;
 		}
@@ -197,9 +181,7 @@ namespace MimaEmuPrinter.Core.Rendering
 		public void FeedDots(Int32 dots)
 		{
 			if (dots <= 0)
-			{
 				return;
-			}
 
 			FeedLines(Math.Max(1, (dots + (DotsPerTextLine / 2)) / DotsPerTextLine));
 		}
@@ -223,10 +205,8 @@ namespace MimaEmuPrinter.Core.Rendering
 		public void AddNotice(String text)
 		{
 			CommitIfPending();
-			foreach (Char value in text)
-			{
+			foreach (var value in text)
 				AppendChar(value);
-			}
 
 			CommitLine(true);
 		}
@@ -234,11 +214,9 @@ namespace MimaEmuPrinter.Core.Rendering
 		/// <summary>The ticket so far, including the line being typed.</summary>
 		public Ticket Snapshot()
 		{
-			List<TicketLine> result = new List<TicketLine>(lines);
+			var result = new List<TicketLine>(lines);
 			if (logicalColumns > 0)
-			{
-				result.AddRange(FormatLine(new List<TicketRun>(runs), logicalColumns, lineAlignment, false, out Int32 _));
-			}
+				result.AddRange(FormatLine([.. runs], logicalColumns, lineAlignment, false, out Int32 _));
 
 			return new Ticket(columns, result);
 		}
@@ -246,22 +224,18 @@ namespace MimaEmuPrinter.Core.Rendering
 		private void AppendChar(Char value)
 		{
 			afterCarriageReturn = false;
-			Int32 width = doubleWidth ? 2 : 1;
+			var width = doubleWidth ? 2 : 1;
 			if (logicalColumns == 0)
-			{
 				lineAlignment = alignment;
-			}
 
 			logicalColumns += width;
 			if (storedColumns + width > MaxStoredColumns)
-			{
 				return;
-			}
 
 			storedColumns += width;
 			if (runs.Count > 0 && HasCurrentStyle(runs[runs.Count - 1]))
 			{
-				TicketRun last = runs[runs.Count - 1];
+				var last = runs[runs.Count - 1];
 				runs[runs.Count - 1] = last with { Text = last.Text + value };
 			}
 			else
@@ -280,47 +254,39 @@ namespace MimaEmuPrinter.Core.Rendering
 		private void CommitIfPending()
 		{
 			if (logicalColumns > 0)
-			{
 				CommitLine(false);
-			}
 		}
 
 		private void CommitLine(Boolean forceWrap)
 		{
 			afterCarriageReturn = false;
-			TicketAlignment lineAlign = logicalColumns == 0 ? alignment : lineAlignment;
-			Int32 lineNumber = lines.Count + 1;
-			Int32 logical = logicalColumns;
-			List<TicketRun> current = new List<TicketRun>(runs);
+			var lineAlign = logicalColumns == 0 ? alignment : lineAlignment;
+			var lineNumber = lines.Count + 1;
+			var logical = logicalColumns;
+			var current = new List<TicketRun>(runs);
 			runs.Clear();
 			logicalColumns = 0;
 			storedColumns = 0;
 
-			List<TicketLine> formatted = FormatLine(current, logical, lineAlign, forceWrap, out Int32 overflowLength);
+			var formatted = FormatLine(current, logical, lineAlign, forceWrap, out Int32 overflowLength);
 			foreach (TicketLine line in formatted)
-			{
 				AddLine(line);
-			}
 
 			version++;
 			if (overflowLength > 0)
-			{
 				ColumnOverflow?.Invoke(this, new ColumnOverflowEventArgs(lineNumber, overflowLength, columns));
-			}
 		}
 
 		private void AddLine(TicketLine line)
 		{
 			if (lines.Count < MaxLines)
-			{
 				lines.Add(line);
-			}
 		}
 
 		private List<TicketLine> FormatLine(List<TicketRun> source, Int32 logical, TicketAlignment lineAlign, Boolean forceWrap, out Int32 overflowLength)
 		{
 			overflowLength = 0;
-			List<TicketLine> result = new List<TicketLine>();
+			var result = new List<TicketLine>();
 			if (logical <= columns)
 			{
 				result.Add(new TicketLine(TicketLineKind.Text, lineAlign, source));
@@ -338,9 +304,7 @@ namespace MimaEmuPrinter.Core.Rendering
 				}
 
 				if (rest.Count > 0)
-				{
 					result.Add(new TicketLine(TicketLineKind.Text, lineAlign, rest));
-				}
 
 				return result;
 			}
@@ -354,27 +318,25 @@ namespace MimaEmuPrinter.Core.Rendering
 
 		private static Boolean IsWrappable(List<TicketRun> source)
 		{
-			String text = String.Concat(source.ConvertAll(run => run.Text)).TrimStart();
+			var text = String.Concat(source.ConvertAll(run => run.Text)).TrimStart();
 			return text.Contains("://", StringComparison.Ordinal) || text.StartsWith("www.", StringComparison.OrdinalIgnoreCase);
 		}
 
 		private static Int32 CountColumns(List<TicketRun> source)
 		{
-			Int32 total = 0;
+			var total = 0;
 			foreach (TicketRun run in source)
-			{
 				total += run.Columns;
-			}
 
 			return total;
 		}
 
 		private static void Split(List<TicketRun> source, Int32 maxColumns, out List<TicketRun> head, out List<TicketRun> tail)
 		{
-			head = new List<TicketRun>();
-			tail = new List<TicketRun>();
-			Int32 used = 0;
-			Boolean full = false;
+			head = [];
+			tail = [];
+			var used = 0;
+			var full = false;
 			foreach (TicketRun run in source)
 			{
 				if (full)
@@ -383,8 +345,8 @@ namespace MimaEmuPrinter.Core.Rendering
 					continue;
 				}
 
-				Int32 cellWidth = run.DoubleWidth ? 2 : 1;
-				Int32 fit = Math.Min(run.Text.Length, Math.Max(0, maxColumns - used) / cellWidth);
+				var cellWidth = run.DoubleWidth ? 2 : 1;
+				var fit = Math.Min(run.Text.Length, Math.Max(0, maxColumns - used) / cellWidth);
 				if (fit >= run.Text.Length)
 				{
 					head.Add(run);

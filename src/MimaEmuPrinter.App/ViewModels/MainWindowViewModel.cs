@@ -29,11 +29,11 @@ namespace MimaEmuPrinter.App.ViewModels
 
 		private readonly SettingsStore settingsStore;
 		private readonly AppSettings settings;
-		private readonly StatusEngine status = new StatusEngine();
+		private readonly StatusEngine status = new();
 		private readonly JournalService journal;
 		private readonly ArchiveService archive;
 		private readonly PrinterServer server;
-		private readonly TicketDisplay display = new TicketDisplay();
+		private readonly TicketDisplay display = new();
 		private readonly DispatcherTimer timer;
 		private Int32 currentPaper;
 		private Int32 refreshPending;
@@ -71,19 +71,16 @@ namespace MimaEmuPrinter.App.ViewModels
 				: settings.ListenAddress.Trim();
 			portValue = settings.Port;
 
-			List<String> choices = new List<String>(NetworkAddressProvider.GetSelectableAddresses());
+			var choices = new List<String>(NetworkAddressProvider.GetSelectableAddresses());
+
 			if (!choices.Contains(listenAddress))
-			{
 				choices.Insert(0, listenAddress);
-			}
 
 			AddressChoices = choices;
 			PaperOptions = PaperProfile.All;
 
 			foreach (PrinterFaults fault in FaultRules.All)
-			{
 				Faults.Add(new FaultItemViewModel(fault, status));
-			}
 
 			server = new PrinterServer(status, journal, archive, () => (PaperWidth)Volatile.Read(ref currentPaper));
 
@@ -114,9 +111,9 @@ namespace MimaEmuPrinter.App.ViewModels
 
 		public IReadOnlyList<PaperProfile> PaperOptions { get; }
 
-		public ObservableCollection<FaultItemViewModel> Faults { get; } = new ObservableCollection<FaultItemViewModel>();
+		public ObservableCollection<FaultItemViewModel> Faults { get; } = [];
 
-		public ObservableCollection<String> JournalLines { get; } = new ObservableCollection<String>();
+		public ObservableCollection<String> JournalLines { get; } = [];
 
 		public ICommand StartStopCommand { get; }
 
@@ -153,11 +150,11 @@ namespace MimaEmuPrinter.App.ViewModels
 				// Applies to the next job: the ticket being rendered keeps the paper it started with.
 				Volatile.Write(ref currentPaper, (Int32)value.Width);
 				settings.Paper = value.Width;
+
 				SaveSettings();
+
 				if (display.Current == null)
-				{
 					RefreshDisplay();
-				}
 			}
 		}
 
@@ -180,15 +177,12 @@ namespace MimaEmuPrinter.App.ViewModels
 		{
 			get
 			{
-				switch (listenerState)
+				return listenerState switch
 				{
-					case ListenerState.Listening:
-						return "En écoute";
-					case ListenerState.Busy:
-						return "Occupée";
-					default:
-						return "Arrêtée";
-				}
+					ListenerState.Listening => "En écoute",
+					ListenerState.Busy => "Occupée",
+					_ => "Arrêtée",
+				};
 			}
 		}
 
@@ -196,15 +190,12 @@ namespace MimaEmuPrinter.App.ViewModels
 		{
 			get
 			{
-				switch (listenerState)
+				return listenerState switch
 				{
-					case ListenerState.Listening:
-						return Brushes.SeaGreen;
-					case ListenerState.Busy:
-						return Brushes.DarkOrange;
-					default:
-						return Brushes.Gray;
-				}
+					ListenerState.Listening => Brushes.SeaGreen,
+					ListenerState.Busy => Brushes.DarkOrange,
+					_ => Brushes.Gray,
+				};
 			}
 		}
 
@@ -282,7 +273,7 @@ namespace MimaEmuPrinter.App.ViewModels
 			timer.Stop();
 			SaveSettings();
 			Task stopping = server.StopAsync();
-			Task.WaitAny(new[] { stopping }, TimeSpan.FromSeconds(3));
+			Task.WaitAny([stopping], TimeSpan.FromSeconds(3));
 		}
 
 		private void EnsureOutputDirectories()
@@ -311,7 +302,7 @@ namespace MimaEmuPrinter.App.ViewModels
 				return;
 			}
 
-			Int32 port = (Int32)(PortValue ?? 0);
+			var port = (Int32)(PortValue ?? 0);
 			if (port < 1 || port > 65535)
 			{
 				journal.Write("Port invalide (1 à 65535) : " + PortValue?.ToString(CultureInfo.InvariantCulture));
@@ -448,7 +439,7 @@ namespace MimaEmuPrinter.App.ViewModels
 			}
 			else
 			{
-				PaperProfile profile = PaperProfile.For(current.Paper);
+				var profile = PaperProfile.For(current.Paper);
 				DisplayedColumns = profile.Columns;
 				DisplayedPaperMm = profile.WidthMm;
 				DisplayedTicket = current.Ticket;

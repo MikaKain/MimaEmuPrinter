@@ -43,20 +43,15 @@ namespace MimaEmuPrinter.App
 		{
 			String? output = null;
 			String? settings = null;
-			for (Int32 index = 0; index < args.Length; index++)
+
+			for (var index = 0; index < args.Length; index++)
 			{
 				if (args[index] == "--start")
-				{
 					AutoStart = true;
-				}
 				else if (args[index] == "--output" && index + 1 < args.Length)
-				{
 					output = args[index + 1];
-				}
 				else if (args[index] == "--settings" && index + 1 < args.Length)
-				{
 					settings = args[index + 1];
-				}
 			}
 
 			try

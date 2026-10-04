@@ -62,11 +62,9 @@ namespace MimaEmuPrinter.Core.Rendering
 		{
 			get
 			{
-				Int32 total = 0;
+				var total = 0;
 				foreach (TicketRun run in Runs)
-				{
 					total += run.Columns;
-				}
 
 				return total;
 			}
@@ -86,13 +84,8 @@ namespace MimaEmuPrinter.Core.Rendering
 						return 1;
 					default:
 						foreach (TicketRun run in Runs)
-						{
 							if (run.DoubleHeight)
-							{
 								return 2;
-							}
-						}
-
 						return 1;
 				}
 			}
@@ -105,9 +98,7 @@ namespace MimaEmuPrinter.Core.Rendering
 			get
 			{
 				if (Kind == TicketLineKind.Band)
-				{
 					return BandText ?? String.Empty;
-				}
 
 				return String.Concat(Runs.Select(run => run.Text));
 			}
@@ -130,15 +121,12 @@ namespace MimaEmuPrinter.Core.Rendering
 		{
 			get
 			{
-				switch (Outcome)
+				return Outcome switch
 				{
-					case JobOutcome.NotPrinted:
-						return "non imprimé : " + Reason;
-					case JobOutcome.Truncated:
-						return "tronqué : " + Reason;
-					default:
-						return null;
-				}
+					JobOutcome.NotPrinted => "non imprimé : " + Reason,
+					JobOutcome.Truncated => "tronqué : " + Reason,
+					_ => null,
+				};
 			}
 		}
 	}

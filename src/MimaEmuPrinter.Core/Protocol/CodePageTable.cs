@@ -14,7 +14,7 @@ namespace MimaEmuPrinter.Core.Protocol
 
 		public const Byte Pc858 = 19;
 
-		private static readonly ConcurrentDictionary<Int32, Char[]> Cache = new ConcurrentDictionary<Int32, Char[]>();
+		private static readonly ConcurrentDictionary<Int32, Char[]> Cache = new();
 
 		static CodePageTable()
 		{
@@ -29,35 +29,25 @@ namespace MimaEmuPrinter.Core.Protocol
 		/// <summary>Table of the 256 characters for an ESC t value; unknown values fall back to Windows-1252.</summary>
 		public static Char[] Get(Byte escTValue)
 		{
-			Int32 codePage = GetWindowsCodePage(escTValue);
+			var codePage = GetWindowsCodePage(escTValue);
 			return Cache.GetOrAdd(codePage, Build);
 		}
 
 		private static Int32 GetWindowsCodePage(Byte escTValue)
 		{
-			switch (escTValue)
+			return escTValue switch
 			{
-				case 0:
-					return 437;
-				case 2:
-					return 850;
-				case 3:
-					return 860;
-				case 4:
-					return 863;
-				case 5:
-					return 865;
-				case 16:
-					return 1252;
-				case 17:
-					return 866;
-				case 18:
-					return 852;
-				case 19:
-					return 858;
-				default:
-					return 1252;
-			}
+				0 => 437,
+				2 => 850,
+				3 => 860,
+				4 => 863,
+				5 => 865,
+				16 => 1252,
+				17 => 866,
+				18 => 852,
+				19 => 858,
+				_ => 1252,
+			};
 		}
 
 		private static Char[] Build(Int32 codePage)
@@ -72,9 +62,9 @@ namespace MimaEmuPrinter.Core.Protocol
 				encoding = Encoding.GetEncoding(1252, EncoderFallback.ReplacementFallback, new DecoderReplacementFallback(UndecodedByte.ToString()));
 			}
 
-			Char[] table = new Char[256];
-			Byte[] single = new Byte[1];
-			for (Int32 index = 0; index < table.Length; index++)
+			var table = new Char[256];
+			var single = new Byte[1];
+			for (var index = 0; index < table.Length; index++)
 			{
 				if (index < 0x20 || index == 0x7F)
 				{
@@ -83,7 +73,7 @@ namespace MimaEmuPrinter.Core.Protocol
 				}
 
 				single[0] = (Byte)index;
-				String decoded = encoding.GetString(single);
+				var decoded = encoding.GetString(single);
 				table[index] = decoded.Length == 1 && decoded[0] != '�' ? decoded[0] : UndecodedByte;
 			}
 

@@ -2,8 +2,8 @@ namespace MimaEmuPrinter.Core.Archive
 {
 	using System;
 	using System.Collections.Generic;
-	using MimaEmuPrinter.Core.Paper;
-	using MimaEmuPrinter.Core.Rendering;
+	using Paper;
+	using Rendering;
 
 	/// <summary>Everything the PDF needs to draw one ticket cartridge; also stored as JSON next to the raw stream.</summary>
 	public sealed class JobRecord
@@ -39,15 +39,12 @@ namespace MimaEmuPrinter.Core.Archive
 		{
 			get
 			{
-				switch (Outcome)
+				return Outcome switch
 				{
-					case JobOutcome.NotPrinted:
-						return "non imprimé : " + Reason;
-					case JobOutcome.Truncated:
-						return "tronqué : " + Reason;
-					default:
-						return null;
-				}
+					JobOutcome.NotPrinted => "non imprimé : " + Reason,
+					JobOutcome.Truncated => "tronqué : " + Reason,
+					_ => null,
+				};
 			}
 		}
 	}

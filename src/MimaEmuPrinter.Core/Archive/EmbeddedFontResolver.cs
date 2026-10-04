@@ -16,10 +16,10 @@ namespace MimaEmuPrinter.Core.Archive
 
 		public const String SansFamily = "Liberation Sans";
 
-		private static readonly Object InstallLock = new Object();
+		private static readonly Object InstallLock = new();
 		private static Boolean installed;
 
-		private readonly ConcurrentDictionary<String, Byte[]> cache = new ConcurrentDictionary<String, Byte[]>();
+		private readonly ConcurrentDictionary<String, Byte[]> cache = new();
 
 		/// <summary>Registers the resolver once for the process.</summary>
 		public static void Install()
@@ -27,9 +27,7 @@ namespace MimaEmuPrinter.Core.Archive
 			lock (InstallLock)
 			{
 				if (installed)
-				{
 					return;
-				}
 
 				GlobalFontSettings.FontResolver = new EmbeddedFontResolver();
 				installed = true;
@@ -38,7 +36,7 @@ namespace MimaEmuPrinter.Core.Archive
 
 		public FontResolverInfo? ResolveTypeface(String familyName, Boolean isBold, Boolean isItalic)
 		{
-			String baseName = String.Equals(familyName, SansFamily, StringComparison.OrdinalIgnoreCase) ? "LiberationSans" : "LiberationMono";
+			var baseName = String.Equals(familyName, SansFamily, StringComparison.OrdinalIgnoreCase) ? "LiberationSans" : "LiberationMono";
 			return new FontResolverInfo(baseName + (isBold ? "-Bold" : "-Regular"));
 		}
 
@@ -49,14 +47,12 @@ namespace MimaEmuPrinter.Core.Archive
 
 		private static Byte[] LoadFont(String faceName)
 		{
-			String resourceName = "MimaEmuPrinter.Core.Fonts." + faceName + ".ttf";
+			var resourceName = "MimaEmuPrinter.Core.Fonts." + faceName + ".ttf";
 			using Stream? stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
 			if (stream == null)
-			{
 				throw new InvalidOperationException("Embedded font not found: " + resourceName);
-			}
 
-			using MemoryStream buffer = new MemoryStream();
+			using MemoryStream buffer = new();
 			stream.CopyTo(buffer);
 			return buffer.ToArray();
 		}

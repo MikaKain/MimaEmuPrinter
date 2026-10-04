@@ -27,9 +27,7 @@ namespace MimaEmuPrinter.Core.Status
 			get
 			{
 				if (Changed == PrinterFaults.None)
-				{
 					return "Tout effacer";
-				}
 
 				return FaultRules.GetLabel(Changed) + (Enabled ? " activé" : " désactivé");
 			}
@@ -45,7 +43,7 @@ namespace MimaEmuPrinter.Core.Status
 		/// <summary>Epson fixed bits of a real-time status byte: bit 1 = 1, bit 4 = 1, bits 0 and 7 = 0.</summary>
 		private const Byte FixedBits = 0x12;
 
-		private readonly Object syncRoot = new Object();
+		private readonly Object syncRoot = new();
 		private PrinterFaults explicitFaults = PrinterFaults.None;
 
 		public event EventHandler<FaultsChangedEventArgs>? Changed;
@@ -80,27 +78,23 @@ namespace MimaEmuPrinter.Core.Status
 			FaultsChangedEventArgs args;
 			lock (syncRoot)
 			{
-				PrinterFaults before = Combine(explicitFaults);
+				var before = Combine(explicitFaults);
 				if (enabled)
 				{
 					explicitFaults |= fault;
 				}
 				else
 				{
-					PrinterFaults impliedByOthers = FaultRules.GetImplied(explicitFaults & ~fault);
+					var impliedByOthers = FaultRules.GetImplied(explicitFaults & ~fault);
 					if ((impliedByOthers & fault) != 0)
-					{
 						return false;
-					}
 
 					explicitFaults &= ~fault;
 				}
 
-				PrinterFaults after = Combine(explicitFaults);
+				var after = Combine(explicitFaults);
 				if (after == before)
-				{
 					return false;
-				}
 
 				args = new FaultsChangedEventArgs(before, after, fault, enabled);
 			}
@@ -118,9 +112,7 @@ namespace MimaEmuPrinter.Core.Status
 				PrinterFaults before = Combine(explicitFaults);
 				explicitFaults = PrinterFaults.None;
 				if (before == PrinterFaults.None)
-				{
 					return;
-				}
 
 				args = new FaultsChangedEventArgs(before, PrinterFaults.None, PrinterFaults.None, false);
 			}
@@ -168,8 +160,8 @@ namespace MimaEmuPrinter.Core.Status
 		/// <summary>Answer to GS r 1: paper sensors (bits 0-1 near end, bits 2-3 paper end).</summary>
 		public Byte GetPaperSensorStatus()
 		{
-			PrinterFaults faults = Effective;
-			Int32 bits = 0;
+			var faults = Effective;
+			var bits = 0;
 			bits |= Has(faults, PrinterFaults.PaperNearEnd) ? 0x03 : 0;
 			bits |= Has(faults, PrinterFaults.PaperOut) ? 0x0C : 0;
 			return (Byte)bits;
@@ -183,20 +175,20 @@ namespace MimaEmuPrinter.Core.Status
 
 		public static Byte[] BuildAutomaticStatus(PrinterFaults faults)
 		{
-			Int32 first = 0x10;
+			var first = 0x10;
 			first |= Has(faults, PrinterFaults.Offline) ? 0x08 : 0;
 			first |= Has(faults, PrinterFaults.CoverOpen) ? 0x20 : 0;
 
-			Int32 second = 0;
+			var second = 0;
 			second |= Has(faults, PrinterFaults.CutterError) ? 0x08 : 0;
 			second |= Has(faults, PrinterFaults.UnrecoverableError) ? 0x20 : 0;
 			second |= Has(faults, PrinterFaults.RecoverableError) ? 0x40 : 0;
 
-			Int32 third = 0;
+			var third = 0;
 			third |= Has(faults, PrinterFaults.PaperNearEnd) ? 0x03 : 0;
 			third |= Has(faults, PrinterFaults.PaperOut) ? 0x0C : 0;
 
-			return new Byte[] { (Byte)first, (Byte)second, (Byte)third, 0x00 };
+			return [(Byte)first, (Byte)second, (Byte)third, 0x00];
 		}
 
 		private static PrinterFaults Combine(PrinterFaults explicitFaults)

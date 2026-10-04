@@ -49,23 +49,19 @@ namespace MimaEmuPrinter.Core.Network
 
 		public static IReadOnlyList<IPAddress> GetLocalIPv4Addresses()
 		{
-			List<IPAddress> addresses = new List<IPAddress>();
+			var addresses = new List<IPAddress>();
 			try
 			{
-				foreach (NetworkInterface network in NetworkInterface.GetAllNetworkInterfaces())
+				foreach (var network in NetworkInterface.GetAllNetworkInterfaces())
 				{
 					if (network.OperationalStatus != OperationalStatus.Up || network.NetworkInterfaceType == NetworkInterfaceType.Loopback)
-					{
 						continue;
-					}
 
-					foreach (UnicastIPAddressInformation information in network.GetIPProperties().UnicastAddresses)
+					foreach (var information in network.GetIPProperties().UnicastAddresses)
 					{
-						IPAddress address = information.Address;
+						var address = information.Address;
 						if (address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(address))
-						{
 							addresses.Add(address);
-						}
 					}
 				}
 			}
@@ -81,9 +77,9 @@ namespace MimaEmuPrinter.Core.Network
 		public static IPAddress GetDefaultListenAddress()
 		{
 			IPAddress? linkLocal = null;
-			foreach (IPAddress address in GetLocalIPv4Addresses())
+			foreach (var address in GetLocalIPv4Addresses())
 			{
-				Byte[] bytes = address.GetAddressBytes();
+				var bytes = address.GetAddressBytes();
 				if (bytes[0] == 169 && bytes[1] == 254)
 				{
 					linkLocal ??= address;
@@ -99,11 +95,9 @@ namespace MimaEmuPrinter.Core.Network
 		/// <summary>Addresses offered in the selection list: local addresses, loopback, all interfaces.</summary>
 		public static IReadOnlyList<String> GetSelectableAddresses()
 		{
-			List<String> items = new List<String>();
+			var items = new List<String>();
 			foreach (IPAddress address in GetLocalIPv4Addresses())
-			{
 				items.Add(address.ToString());
-			}
 
 			items.Add(LoopbackText);
 			items.Add(AnyText);

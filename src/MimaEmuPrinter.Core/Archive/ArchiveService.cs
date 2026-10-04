@@ -8,7 +8,7 @@ namespace MimaEmuPrinter.Core.Archive
 	using System.Text.Json.Serialization;
 	using System.Threading;
 	using System.Threading.Tasks;
-	using MimaEmuPrinter.Core.Logging;
+	using Logging;
 
 	/// <summary>
 	/// Archives the closed jobs. Output folder layout:
@@ -22,13 +22,13 @@ namespace MimaEmuPrinter.Core.Archive
 
 		public const String JournalFileName = "journal.log";
 
-		private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+		private static readonly JsonSerializerOptions JsonOptions = new()
 		{
 			Converters = { new JsonStringEnumConverter() },
 		};
 
-		private readonly Object idLock = new Object();
-		private readonly Object queueLock = new Object();
+		private readonly Object idLock = new();
+		private readonly Object queueLock = new();
 		private readonly JournalService journal;
 
 		private Task queueTail = Task.CompletedTask;
@@ -38,7 +38,7 @@ namespace MimaEmuPrinter.Core.Archive
 		private Int32 lastJobNumber;
 
 		private DateTime recordsDay = DateTime.MinValue;
-		private List<JobRecord> dayRecords = new List<JobRecord>();
+		private List<JobRecord> dayRecords = [];
 
 		public ArchiveService(String outputDirectory, JournalService journal)
 		{
@@ -168,23 +168,19 @@ namespace MimaEmuPrinter.Core.Archive
 
 		private List<JobRecord> LoadDayRecords(DateTime day)
 		{
-			List<JobRecord> records = new List<JobRecord>();
+			var records = new List<JobRecord>();
 			if (!Directory.Exists(RawDirectory))
-			{
 				return records;
-			}
 
-			String[] files = Directory.GetFiles(RawDirectory, day.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-*.json");
+			var files = Directory.GetFiles(RawDirectory, day.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-*.json");
 			Array.Sort(files, StringComparer.Ordinal);
 			foreach (String file in files)
 			{
 				try
 				{
-					JobRecord? loaded = JsonSerializer.Deserialize<JobRecord>(File.ReadAllText(file), JsonOptions);
+					var loaded = JsonSerializer.Deserialize<JobRecord>(File.ReadAllText(file), JsonOptions);
 					if (loaded != null)
-					{
 						records.Add(loaded);
-					}
 				}
 				catch (Exception ex) when (ex is IOException || ex is JsonException)
 				{
@@ -197,21 +193,17 @@ namespace MimaEmuPrinter.Core.Archive
 
 		private Int32 ReadLastJobNumber(DateTime day)
 		{
-			Int32 last = 0;
+			var last = 0;
 			if (!Directory.Exists(RawDirectory))
-			{
 				return last;
-			}
 
-			String prefix = day.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-";
+			var prefix = day.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-";
 			foreach (String file in Directory.GetFiles(RawDirectory, prefix + "*.json"))
 			{
-				String name = Path.GetFileNameWithoutExtension(file);
-				Int32 separator = name.LastIndexOf("-J", StringComparison.Ordinal);
+				var name = Path.GetFileNameWithoutExtension(file);
+				var separator = name.LastIndexOf("-J", StringComparison.Ordinal);
 				if (separator >= 0 && Int32.TryParse(name.AsSpan(separator + 2), NumberStyles.None, CultureInfo.InvariantCulture, out Int32 number))
-				{
 					last = Math.Max(last, number);
-				}
 			}
 
 			return last;

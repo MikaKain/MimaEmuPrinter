@@ -71,9 +71,9 @@ Commands:
 
 			try
 			{
-				using TcpClient client = new TcpClient();
+				using TcpClient client = new();
 				await client.ConnectAsync(host, port);
-				NetworkStream stream = client.GetStream();
+				var stream = client.GetStream();
 				return await RunAsync(stream, positional, columns, logo, expected);
 			}
 			catch (Exception ex) when (ex is SocketException || ex is IOException)
@@ -100,9 +100,9 @@ Commands:
 					await stream.WriteAsync(Encoding.Latin1.GetBytes(String.Join(" ", command.GetRange(1, command.Count - 1)) + "\n"));
 					return 0;
 				case "status":
-					return await QueryAsync(stream, new Byte[] { 0x10, 0x04, Byte.Parse(command[1]) }, "DLE EOT " + command[1], expected);
+					return await QueryAsync(stream, [0x10, 0x04, Byte.Parse(command[1])], "DLE EOT " + command[1], expected);
 				case "paper":
-					return await QueryAsync(stream, new Byte[] { 0x1D, 0x72, 0x01 }, "GS r 1", expected);
+					return await QueryAsync(stream, [0x1D, 0x72, 0x01], "GS r 1", expected);
 				case "id":
 					return await ReadIdentityAsync(stream);
 				case "enq":
@@ -126,9 +126,9 @@ Commands:
 		private static async Task<Int32> QueryAsync(NetworkStream stream, Byte[] request, String label, Int32? expected)
 		{
 			await stream.WriteAsync(request);
-			Byte[] answer = new Byte[1];
-			using CancellationTokenSource timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-			Int32 read = await stream.ReadAsync(answer.AsMemory(), timeout.Token);
+			var answer = new Byte[1];
+			using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(3));
+			var read = await stream.ReadAsync(answer.AsMemory(), timeout.Token);
 			if (read != 1)
 			{
 				Console.Error.WriteLine(label + ": no answer");
@@ -147,19 +147,17 @@ Commands:
 
 		private static async Task<Int32> ReadIdentityAsync(NetworkStream stream)
 		{
-			foreach (Byte n in new Byte[] { 67, 65 })
+			foreach (var n in new Byte[] { 67, 65 })
 			{
 				await stream.WriteAsync(new Byte[] { 0x1D, 0x49, n });
-				List<Byte> text = new List<Byte>();
-				Byte[] one = new Byte[1];
-				using CancellationTokenSource timeout = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+				var text = new List<Byte>();
+				var one = new Byte[1];
+				using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(3));
 				while (true)
 				{
-					Int32 read = await stream.ReadAsync(one.AsMemory(), timeout.Token);
+					var read = await stream.ReadAsync(one.AsMemory(), timeout.Token);
 					if (read == 0 || one[0] == 0)
-					{
 						break;
-					}
 
 					text.Add(one[0]);
 				}
@@ -174,20 +172,18 @@ Commands:
 		{
 			await stream.WriteAsync(new Byte[] { 0x1D, 0x61, 0xFF });
 			Console.WriteLine("ASB armed, waiting {0} s for status changes...", seconds);
-			using CancellationTokenSource limit = new CancellationTokenSource(TimeSpan.FromSeconds(seconds));
-			Byte[] buffer = new Byte[4];
+			using CancellationTokenSource limit = new(TimeSpan.FromSeconds(seconds));
+			var buffer = new Byte[4];
 			try
 			{
 				while (!limit.IsCancellationRequested)
 				{
-					Int32 total = 0;
+					var total = 0;
 					while (total < 4)
 					{
-						Int32 read = await stream.ReadAsync(buffer.AsMemory(total, 4 - total), limit.Token);
+						var read = await stream.ReadAsync(buffer.AsMemory(total, 4 - total), limit.Token);
 						if (read == 0)
-						{
 							return 0;
-						}
 
 						total += read;
 					}

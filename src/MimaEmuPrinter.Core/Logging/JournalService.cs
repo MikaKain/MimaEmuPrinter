@@ -21,8 +21,8 @@ namespace MimaEmuPrinter.Core.Logging
 	{
 		public const Int32 DefaultCapacity = 500;
 
-		private readonly Object syncRoot = new Object();
-		private readonly Queue<JournalEntry> entries = new Queue<JournalEntry>();
+		private readonly Object syncRoot = new();
+		private readonly Queue<JournalEntry> entries = new();
 		private readonly String? filePath;
 		private readonly TimeProvider time;
 		private readonly Int32 capacity;
@@ -39,7 +39,7 @@ namespace MimaEmuPrinter.Core.Logging
 
 		public void Write(String message)
 		{
-			JournalEntry entry = new JournalEntry(time.GetLocalNow().DateTime, message);
+			var entry = new JournalEntry(time.GetLocalNow().DateTime, message);
 			lock (syncRoot)
 			{
 				entries.Enqueue(entry);
@@ -66,17 +66,13 @@ namespace MimaEmuPrinter.Core.Logging
 		private void AppendToFile(JournalEntry entry)
 		{
 			if (String.IsNullOrEmpty(filePath))
-			{
 				return;
-			}
 
 			try
 			{
-				String? directory = Path.GetDirectoryName(filePath);
+				var directory = Path.GetDirectoryName(filePath);
 				if (!String.IsNullOrEmpty(directory))
-				{
 					Directory.CreateDirectory(directory);
-				}
 
 				File.AppendAllText(filePath, entry.ToString() + Environment.NewLine, new UTF8Encoding(false));
 			}

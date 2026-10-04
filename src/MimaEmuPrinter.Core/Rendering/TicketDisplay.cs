@@ -25,7 +25,7 @@ namespace MimaEmuPrinter.Core.Rendering
 	{
 		public static readonly TimeSpan DefaultRetention = TimeSpan.FromSeconds(5);
 
-		private readonly Object syncRoot = new Object();
+		private readonly Object syncRoot = new();
 		private readonly TimeProvider time;
 		private readonly TimeSpan retention;
 		private TicketUpdate? current;
@@ -70,14 +70,10 @@ namespace MimaEmuPrinter.Core.Rendering
 				lock (syncRoot)
 				{
 					if (current == null)
-					{
 						return TicketDisplayState.Waiting;
-					}
 
 					if (!current.IsClosed)
-					{
 						return TicketDisplayState.Printing;
-					}
 
 					return holdRequested ? TicketDisplayState.Held : TicketDisplayState.Closed;
 				}
@@ -92,11 +88,9 @@ namespace MimaEmuPrinter.Core.Rendering
 				lock (syncRoot)
 				{
 					if (current == null || !current.IsClosed || holdRequested)
-					{
 						return 0;
-					}
 
-					Double remaining = (deadline - time.GetUtcNow()).TotalSeconds;
+					var remaining = (deadline - time.GetUtcNow()).TotalSeconds;
 					return remaining <= 0 ? 0 : (Int32)Math.Ceiling(remaining);
 				}
 			}
@@ -108,15 +102,11 @@ namespace MimaEmuPrinter.Core.Rendering
 			lock (syncRoot)
 			{
 				if (current == null || current.JobId != update.JobId)
-				{
 					holdRequested = false;
-				}
 
 				current = update;
 				if (update.IsClosed)
-				{
 					deadline = time.GetUtcNow() + retention;
-				}
 			}
 
 			RaiseChanged();
@@ -128,9 +118,7 @@ namespace MimaEmuPrinter.Core.Rendering
 			lock (syncRoot)
 			{
 				if (current == null || holdRequested)
-				{
 					return;
-				}
 
 				holdRequested = true;
 			}
@@ -144,9 +132,7 @@ namespace MimaEmuPrinter.Core.Rendering
 			lock (syncRoot)
 			{
 				if (!holdRequested)
-				{
 					return;
-				}
 
 				holdRequested = false;
 			}
@@ -161,9 +147,7 @@ namespace MimaEmuPrinter.Core.Rendering
 			lock (syncRoot)
 			{
 				if (current == null || !current.IsClosed || holdRequested || time.GetUtcNow() < deadline)
-				{
 					return false;
-				}
 
 				current = null;
 			}

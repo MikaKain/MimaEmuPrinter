@@ -21,7 +21,7 @@ namespace MimaEmuPrinter.Core.Settings
 	/// <summary>JSON settings file stored next to the executable.</summary>
 	public sealed class SettingsStore
 	{
-		private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+		private static readonly JsonSerializerOptions JsonOptions = new()
 		{
 			WriteIndented = true,
 			Converters = { new JsonStringEnumConverter() },
@@ -45,11 +45,9 @@ namespace MimaEmuPrinter.Core.Settings
 			try
 			{
 				if (!File.Exists(path))
-				{
 					return new AppSettings();
-				}
 
-				AppSettings? loaded = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(path), JsonOptions);
+				var loaded = JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(path), JsonOptions);
 				return Sanitize(loaded ?? new AppSettings());
 			}
 			catch (Exception ex) when (ex is IOException || ex is UnauthorizedAccessException || ex is JsonException)
@@ -75,14 +73,10 @@ namespace MimaEmuPrinter.Core.Settings
 		private static AppSettings Sanitize(AppSettings settings)
 		{
 			if (settings.Port < 1 || settings.Port > 65535)
-			{
 				settings.Port = AppSettings.DefaultPort;
-			}
 
 			if (!Enum.IsDefined(settings.Paper))
-			{
 				settings.Paper = PaperWidth.Mm80Col42;
-			}
 
 			settings.ListenAddress ??= String.Empty;
 			return settings;

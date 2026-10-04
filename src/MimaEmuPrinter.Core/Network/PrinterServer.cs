@@ -6,11 +6,11 @@ namespace MimaEmuPrinter.Core.Network
 	using System.Net.Sockets;
 	using System.Threading;
 	using System.Threading.Tasks;
-	using MimaEmuPrinter.Core.Archive;
-	using MimaEmuPrinter.Core.Logging;
-	using MimaEmuPrinter.Core.Paper;
-	using MimaEmuPrinter.Core.Rendering;
-	using MimaEmuPrinter.Core.Status;
+	using Archive;
+	using Logging;
+	using Paper;
+	using Rendering;
+	using Status;
 
 	/// <summary>
 	/// The virtual printer: a raw TCP listener accepting one cash register connection at a time.
@@ -19,7 +19,7 @@ namespace MimaEmuPrinter.Core.Network
 	/// </summary>
 	public sealed class PrinterServer : IAsyncDisposable
 	{
-		private readonly Object gate = new Object();
+		private readonly Object gate = new();
 		private readonly StatusEngine status;
 		private readonly JournalService journal;
 		private readonly ArchiveService archive;
@@ -108,8 +108,8 @@ namespace MimaEmuPrinter.Core.Network
 				return false;
 			}
 
-			IPEndPoint bound = (IPEndPoint)newListener.LocalEndpoint;
-			CancellationTokenSource source = new CancellationTokenSource();
+			var bound = (IPEndPoint)newListener.LocalEndpoint;
+			var source = new CancellationTokenSource();
 			lock (gate)
 			{
 				listener = newListener;
@@ -254,7 +254,7 @@ namespace MimaEmuPrinter.Core.Network
 			}
 
 			RaiseStateChanged();
-			Task running = Task.Run(async () =>
+			var running = Task.Run(async () =>
 			{
 				try
 				{
@@ -287,7 +287,7 @@ namespace MimaEmuPrinter.Core.Network
 
 		private void RefuseConnection(TcpClient incoming)
 		{
-			String source = incoming.Client.RemoteEndPoint?.ToString() ?? "?";
+			var source = incoming.Client.RemoteEndPoint?.ToString() ?? "?";
 			try
 			{
 				incoming.LingerState = new LingerOption(true, 0);

@@ -3,8 +3,8 @@ namespace MimaEmuPrinter.App
 	using Avalonia;
 	using Avalonia.Controls.ApplicationLifetimes;
 	using Avalonia.Markup.Xaml;
-	using MimaEmuPrinter.App.ViewModels;
-	using MimaEmuPrinter.App.Views;
+	using ViewModels;
+	using Views;
 
 	public sealed partial class App : Application
 	{
@@ -17,14 +17,14 @@ namespace MimaEmuPrinter.App
 		{
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
-				MainWindowViewModel viewModel = new MainWindowViewModel(AppOptions.SettingsPath, AppOptions.OutputDirectory);
-				MainWindow window = new MainWindow { DataContext = viewModel };
+				var viewModel = new MainWindowViewModel(AppOptions.SettingsPath, AppOptions.OutputDirectory);
+				var window = new MainWindow { DataContext = viewModel };
+
 				window.Closing += (sender, e) => viewModel.Shutdown();
 				desktop.MainWindow = window;
+
 				if (AppOptions.AutoStart)
-				{
 					viewModel.StartStopCommand.Execute(null);
-				}
 			}
 
 			base.OnFrameworkInitializationCompleted();
