@@ -22,7 +22,7 @@ Le dossier de travail de l'application est le dossier de l'exécutable. On y tro
 
 | Élément | Rôle |
 | --- | --- |
-| `settings.json` | IP d'écoute, port et laize, restaurés au lancement |
+| `settings.json` | IP d'écoute, port, laize et thème, restaurés au lancement |
 | `pdf/tickets-AAAA-MM-JJ.pdf` | PDF du jour : A4, 2 colonnes de 5 tickets, réécrit à chaque job clos |
 | `pdf/journal.log` | Journal complet (l'écran garde les 500 dernières lignes) |
 | `pdf/brut/` | Par job : flux ESC/POS brut (`.bin`) et données du ticket (`.json`, qui servent à reconstruire le PDF du jour après un redémarrage) |
@@ -35,6 +35,7 @@ Options de ligne de commande, pour l'automatisation : `--start` (écoute dès le
 2. **Service démarré**, la fenêtre se réduit à l'affichage temps réel et au journal des arrivées. L'indicateur affiche *En écoute* ou *Occupée* (connexion de caisse ouverte), avec l'IP, le port et la laize en sous-titre.
    - Le ticket s'affiche au fil de la réception, reste 5 secondes après la fin du job (compte à rebours), puis revient à *En attente*. *Garder* le fige jusqu'au job suivant ou jusqu'à *Relâcher*.
    - **Événements** ouvre la page des neuf pannes dans une fenêtre séparée, à garder à côté. Effet immédiat, y compris pendant une connexion. Les conséquences sont imposées : *Plus de papier* allume *Arrêt fin de papier*, *Erreur* et *Offline* ; *Capot ouvert* allume *Offline* ; *Erreur massicot / récupérable / irrécupérable* allument *Erreur* et *Offline*. Un interrupteur impliqué est affiché allumé et verrouillé tant que sa cause est active. *Tout effacer* revient à l'état en ligne.
+   - Le bouton de thème de l'en-tête fait défiler *auto* (suit le système), *clair* et *sombre* ; le choix est enregistré dans `settings.json`. Dans le journal, les échecs et refus sont en rouge, les dépassements de colonne et jobs non imprimés / tronqués en orange, les jobs clos en bleu.
    - **Arrêter le service** ferme l'écoute et la connexion ouverte, et ramène l'écran de réglages.
 
 ## Architecture

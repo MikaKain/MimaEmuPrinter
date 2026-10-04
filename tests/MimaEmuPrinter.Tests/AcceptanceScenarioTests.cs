@@ -382,13 +382,14 @@ namespace MimaEmuPrinter.Tests
 			try
 			{
 				SettingsStore store = new SettingsStore(path);
-				store.Save(new AppSettings { ListenAddress = "192.168.1.50", Port = 9101, Paper = PaperWidth.Mm58Col32 });
+				store.Save(new AppSettings { ListenAddress = "192.168.1.50", Port = 9101, Paper = PaperWidth.Mm58Col32, Theme = ThemePreference.Dark });
 
 				AppSettings restored = new SettingsStore(path).Load();
 
 				Assert.Equal("192.168.1.50", restored.ListenAddress);
 				Assert.Equal(9101, restored.Port);
 				Assert.Equal(PaperWidth.Mm58Col32, restored.Paper);
+				Assert.Equal(ThemePreference.Dark, restored.Theme);
 				Assert.Contains("Mm58Col32", File.ReadAllText(path));
 			}
 			finally
@@ -416,6 +417,7 @@ namespace MimaEmuPrinter.Tests
 
 				Assert.Equal(9100, missing.Port);
 				Assert.Equal(PaperWidth.Mm80Col42, corrupt.Paper);
+				Assert.Equal(ThemePreference.System, missing.Theme);
 				Assert.Equal(9100, invalid.Port);
 				Assert.Equal(PaperWidth.Mm80Col48, invalid.Paper);
 			}

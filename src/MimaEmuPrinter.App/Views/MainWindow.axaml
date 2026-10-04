@@ -9,26 +9,7 @@
         Width="580" Height="800" MinWidth="500" MinHeight="560"
         WindowStartupLocation="CenterScreen">
 
-	<Window.Styles>
-		<Style Selector="Border.card">
-			<Setter Property="Background" Value="White" />
-			<Setter Property="BorderBrush" Value="#D5D9DE" />
-			<Setter Property="BorderThickness" Value="1" />
-			<Setter Property="CornerRadius" Value="6" />
-			<Setter Property="Padding" Value="12" />
-		</Style>
-		<Style Selector="TextBlock.heading">
-			<Setter Property="FontSize" Value="15" />
-			<Setter Property="FontWeight" Value="SemiBold" />
-			<Setter Property="Margin" Value="0,0,0,8" />
-		</Style>
-		<Style Selector="TextBlock.caption">
-			<Setter Property="FontSize" Value="11" />
-			<Setter Property="Opacity" Value="0.65" />
-		</Style>
-	</Window.Styles>
-
-	<Grid RowDefinitions="Auto,Auto,*,6,170" Background="#F1F3F5">
+	<Grid RowDefinitions="Auto,Auto,*,6,170" Background="{DynamicResource AppBackground}">
 
 		<!-- Identity and state -->
 		<Border Grid.Row="0" Classes="card" Margin="10,10,10,0">
@@ -37,9 +18,13 @@
 					<TextBlock Text="MimaEmuPrinter" FontSize="20" FontWeight="Bold" />
 					<TextBlock Classes="caption" Text="{Binding ConnectionSummary}" />
 				</StackPanel>
-				<StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="8">
-					<Ellipse Width="14" Height="14" Fill="{Binding StatusBrush}" VerticalAlignment="Center" />
-					<TextBlock Text="{Binding StatusText}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+				<StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="14">
+					<Button Classes="soft" Content="{Binding ThemeText}" Command="{Binding CycleThemeCommand}"
+					        Padding="10,5" FontSize="12" ToolTip.Tip="Basculer entre thème auto (système), clair et sombre" />
+					<StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+						<Ellipse Width="14" Height="14" Fill="{Binding StatusBrush}" VerticalAlignment="Center" />
+						<TextBlock Text="{Binding StatusText}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+					</StackPanel>
 				</StackPanel>
 			</Grid>
 		</Border>
@@ -76,8 +61,7 @@
 					</ListBox>
 				</StackPanel>
 
-				<Button Content="Démarrer" Command="{Binding StartStopCommand}" HorizontalAlignment="Stretch"
-				        HorizontalContentAlignment="Center" Background="#2B6CB0" Foreground="White" FontWeight="SemiBold" />
+				<Button Classes="primary" Content="Démarrer" Command="{Binding StartStopCommand}" HorizontalAlignment="Stretch" />
 			</StackPanel>
 		</Border>
 
@@ -86,24 +70,24 @@
 			<DockPanel>
 				<Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,8">
 					<TextBlock Classes="heading" Text="{Binding DisplayTitle}" Margin="0" VerticalAlignment="Center" />
-					<Border Grid.Column="1" Width="40" Height="40" CornerRadius="20" Background="#2B6CB0" Margin="0,0,10,0"
+					<Border Grid.Column="1" Width="40" Height="40" CornerRadius="20" Background="{DynamicResource AccentBrush}" Margin="0,0,10,0"
 					        IsVisible="{Binding HasCountdown}" ToolTip.Tip="Secondes avant effacement du ticket">
 						<TextBlock Text="{Binding CountdownText}" Foreground="White" FontSize="20" FontWeight="Bold"
 						           HorizontalAlignment="Center" VerticalAlignment="Center" />
 					</Border>
-					<Button Grid.Column="2" Content="{Binding HoldButtonText}" Command="{Binding HoldCommand}"
+					<Button Grid.Column="2" Classes="soft" Content="{Binding HoldButtonText}" Command="{Binding HoldCommand}"
 					        IsEnabled="{Binding CanHold}" MinWidth="90" HorizontalContentAlignment="Center" VerticalAlignment="Center" />
 				</Grid>
 				<TextBlock DockPanel.Dock="Top" Text="{Binding NoticeText}" IsVisible="{Binding HasNotice}"
-				           Foreground="Firebrick" FontWeight="SemiBold" Margin="0,0,0,8" />
+				           Classes="danger" FontWeight="SemiBold" Margin="0,0,0,8" />
 				<Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,*" Margin="0,10,0,0">
-					<Button Content="Événements" Click="OnShowEventsClick" HorizontalAlignment="Stretch"
-					        HorizontalContentAlignment="Center" Margin="0,0,5,0" />
-					<Button Grid.Column="1" Content="Arrêter le service" Command="{Binding StartStopCommand}" HorizontalAlignment="Stretch"
-					        HorizontalContentAlignment="Center" Margin="5,0,0,0" />
+					<Button Classes="soft" Content="Événements" Click="OnShowEventsClick" HorizontalAlignment="Stretch"
+					        Margin="0,0,5,0" />
+					<Button Grid.Column="1" Classes="danger" Content="Arrêter le service" Command="{Binding StartStopCommand}"
+					        HorizontalAlignment="Stretch" Margin="5,0,0,0" />
 				</Grid>
 				<ScrollViewer Name="TicketScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-				              Background="#E4E7EB">
+				              Background="{DynamicResource BackdropBrush}" CornerRadius="6">
 					<ctl:TicketView HorizontalAlignment="Center" VerticalAlignment="Top" Margin="16"
 					                Ticket="{Binding DisplayedTicket}"
 					                Columns="{Binding DisplayedColumns}"
@@ -121,8 +105,9 @@
 				<ListBox Name="JournalList" ItemsSource="{Binding JournalLines}" Background="Transparent"
 				         FontFamily="avares://MimaEmuPrinter/Assets/Fonts#Liberation Mono" FontSize="12">
 					<ListBox.ItemTemplate>
-						<DataTemplate x:DataType="x:String">
-							<TextBlock Text="{Binding}" />
+						<DataTemplate x:DataType="vm:JournalLineViewModel">
+							<TextBlock Text="{Binding Text}" Classes.danger="{Binding IsError}"
+							           Classes.warning="{Binding IsWarning}" Classes.info="{Binding IsJob}" />
 						</DataTemplate>
 					</ListBox.ItemTemplate>
 					<ListBox.Styles>

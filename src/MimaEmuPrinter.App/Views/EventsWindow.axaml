@@ -7,14 +7,14 @@
         Width="400" Height="590" MinWidth="360" MinHeight="400"
         ShowInTaskbar="False" WindowStartupLocation="Manual">
 
-	<Border Background="#F1F3F5" Padding="12">
-		<Border Background="White" BorderBrush="#D5D9DE" BorderThickness="1" CornerRadius="6" Padding="12">
+	<Border Background="{DynamicResource AppBackground}" Padding="12">
+		<Border Classes="card">
 			<DockPanel>
 				<TextBlock DockPanel.Dock="Top" Text="Événements de panne" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,2" />
-				<TextBlock DockPanel.Dock="Top" Text="Effet immédiat, y compris pendant une connexion ouverte."
-				           FontSize="11" Opacity="0.65" Margin="0,0,0,8" />
-				<Button DockPanel.Dock="Bottom" Content="Tout effacer" Command="{Binding ClearAllCommand}"
-				        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,8,0,0" />
+				<TextBlock DockPanel.Dock="Top" Classes="caption" Text="Effet immédiat, y compris pendant une connexion ouverte."
+				           Margin="0,0,0,8" />
+				<Button DockPanel.Dock="Bottom" Classes="soft" Content="Tout effacer" Command="{Binding ClearAllCommand}"
+				        HorizontalAlignment="Stretch" Margin="0,8,0,0" />
 				<ScrollViewer VerticalScrollBarVisibility="Auto">
 					<ItemsControl ItemsSource="{Binding Faults}">
 						<ItemsControl.ItemTemplate>
@@ -22,7 +22,7 @@
 								<Grid ColumnDefinitions="*,Auto" Margin="0,1" ToolTip.Tip="{Binding Effect}">
 									<StackPanel VerticalAlignment="Center">
 										<TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
-										<TextBlock Text="{Binding CommandHint}" FontSize="11" Opacity="0.65" />
+										<TextBlock Text="{Binding CommandHint}" Classes="caption" />
 									</StackPanel>
 									<ToggleSwitch Grid.Column="1" OnContent="" OffContent="" Margin="8,0,0,0"
 									              IsChecked="{Binding IsChecked, Mode=TwoWay}"

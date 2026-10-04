@@ -1,10 +1,114 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="MimaEmuPrinter.App.App"
-             RequestedThemeVariant="Light">
+             RequestedThemeVariant="Default">
+
+	<Application.Resources>
+		<ResourceDictionary>
+			<ResourceDictionary.ThemeDictionaries>
+				<ResourceDictionary x:Key="Light">
+					<SolidColorBrush x:Key="AppBackground">#F1F3F5</SolidColorBrush>
+					<SolidColorBrush x:Key="CardBackground">#FFFFFF</SolidColorBrush>
+					<SolidColorBrush x:Key="CardBorder">#D5D9DE</SolidColorBrush>
+					<SolidColorBrush x:Key="BackdropBrush">#E4E7EB</SolidColorBrush>
+					<SolidColorBrush x:Key="MutedText">#5F6B7A</SolidColorBrush>
+					<SolidColorBrush x:Key="AccentBrush">#2B6CB0</SolidColorBrush>
+					<SolidColorBrush x:Key="AccentHoverBrush">#235A93</SolidColorBrush>
+					<SolidColorBrush x:Key="DangerBrush">#B42318</SolidColorBrush>
+					<SolidColorBrush x:Key="DangerHoverBrush">#912018</SolidColorBrush>
+					<SolidColorBrush x:Key="WarningBrush">#B54708</SolidColorBrush>
+					<SolidColorBrush x:Key="InfoBrush">#1D5FA8</SolidColorBrush>
+					<SolidColorBrush x:Key="SoftButtonBackground">#EDF0F3</SolidColorBrush>
+					<SolidColorBrush x:Key="SoftButtonHover">#E1E5EA</SolidColorBrush>
+				</ResourceDictionary>
+				<ResourceDictionary x:Key="Dark">
+					<SolidColorBrush x:Key="AppBackground">#14171B</SolidColorBrush>
+					<SolidColorBrush x:Key="CardBackground">#1E2227</SolidColorBrush>
+					<SolidColorBrush x:Key="CardBorder">#323941</SolidColorBrush>
+					<SolidColorBrush x:Key="BackdropBrush">#101215</SolidColorBrush>
+					<SolidColorBrush x:Key="MutedText">#98A2B3</SolidColorBrush>
+					<SolidColorBrush x:Key="AccentBrush">#3B82C4</SolidColorBrush>
+					<SolidColorBrush x:Key="AccentHoverBrush">#5496D6</SolidColorBrush>
+					<SolidColorBrush x:Key="DangerBrush">#D92D20</SolidColorBrush>
+					<SolidColorBrush x:Key="DangerHoverBrush">#F04438</SolidColorBrush>
+					<SolidColorBrush x:Key="WarningBrush">#FDB022</SolidColorBrush>
+					<SolidColorBrush x:Key="InfoBrush">#7CB4F0</SolidColorBrush>
+					<SolidColorBrush x:Key="SoftButtonBackground">#2A3037</SolidColorBrush>
+					<SolidColorBrush x:Key="SoftButtonHover">#353C45</SolidColorBrush>
+				</ResourceDictionary>
+			</ResourceDictionary.ThemeDictionaries>
+		</ResourceDictionary>
+	</Application.Resources>
 
 	<Application.Styles>
 		<FluentTheme />
+
+		<Style Selector="Window">
+			<Setter Property="Background" Value="{DynamicResource AppBackground}" />
+		</Style>
+
+		<!-- Cards -->
+		<Style Selector="Border.card">
+			<Setter Property="Background" Value="{DynamicResource CardBackground}" />
+			<Setter Property="BorderBrush" Value="{DynamicResource CardBorder}" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="8" />
+			<Setter Property="Padding" Value="14" />
+			<Setter Property="BoxShadow" Value="0 1 3 0 #1F000000" />
+		</Style>
+
+		<!-- Text -->
+		<Style Selector="TextBlock.heading">
+			<Setter Property="FontSize" Value="15" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Margin" Value="0,0,0,8" />
+		</Style>
+		<Style Selector="TextBlock.caption">
+			<Setter Property="FontSize" Value="11" />
+			<Setter Property="Foreground" Value="{DynamicResource MutedText}" />
+		</Style>
+		<Style Selector="TextBlock.danger">
+			<Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+		</Style>
+		<Style Selector="TextBlock.warning">
+			<Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+		</Style>
+		<Style Selector="TextBlock.info">
+			<Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+		</Style>
+
+		<!-- Buttons -->
+		<Style Selector="Button">
+			<Setter Property="CornerRadius" Value="6" />
+			<Setter Property="Padding" Value="14,7" />
+			<Setter Property="HorizontalContentAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.primary">
+			<Setter Property="Foreground" Value="White" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+		</Style>
+		<Style Selector="Button.primary /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="Button.primary:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource AccentHoverBrush}" />
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="Button.danger /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="Button.danger:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource DangerHoverBrush}" />
+			<Setter Property="Foreground" Value="White" />
+		</Style>
+		<Style Selector="Button.soft /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource SoftButtonBackground}" />
+		</Style>
+		<Style Selector="Button.soft:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource SoftButtonHover}" />
+		</Style>
 	</Application.Styles>
 
 </Application>

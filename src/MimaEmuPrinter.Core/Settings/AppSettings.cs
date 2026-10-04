@@ -6,7 +6,15 @@ namespace MimaEmuPrinter.Core.Settings
 	using System.Text.Json.Serialization;
 	using MimaEmuPrinter.Core.Paper;
 
-	/// <summary>Settings restored at the next start: listening IP, port and paper.</summary>
+	/// <summary>Colour theme of the window: follows the system, or is forced.</summary>
+	public enum ThemePreference
+	{
+		System,
+		Light,
+		Dark,
+	}
+
+	/// <summary>Settings restored at the next start: listening IP, port, paper and theme.</summary>
 	public sealed class AppSettings
 	{
 		public const Int32 DefaultPort = 9100;
@@ -16,6 +24,8 @@ namespace MimaEmuPrinter.Core.Settings
 		public Int32 Port { get; set; } = DefaultPort;
 
 		public PaperWidth Paper { get; set; } = PaperWidth.Mm80Col42;
+
+		public ThemePreference Theme { get; set; } = ThemePreference.System;
 	}
 
 	/// <summary>JSON settings file stored next to the executable.</summary>
@@ -77,6 +87,11 @@ namespace MimaEmuPrinter.Core.Settings
 
 			if (!Enum.IsDefined(settings.Paper))
 				settings.Paper = PaperWidth.Mm80Col42;
+
+			if (!Enum.IsDefined(settings.Theme))
+			{
+				settings.Theme = ThemePreference.System;
+			}
 
 			settings.ListenAddress ??= String.Empty;
 			return settings;

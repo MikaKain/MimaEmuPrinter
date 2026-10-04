@@ -9,7 +9,9 @@ namespace MimaEmuPrinter.App.ViewModels
 	using System.Threading;
 	using System.Threading.Tasks;
 	using System.Windows.Input;
+	using Avalonia;
 	using Avalonia.Media;
+	using Avalonia.Styling;
 	using Avalonia.Threading;
 	using MimaEmuPrinter.Core.Archive;
 	using MimaEmuPrinter.Core.Logging;
@@ -87,6 +89,8 @@ namespace MimaEmuPrinter.App.ViewModels
 			StartStopCommand = new AsyncRelayCommand(ToggleListeningAsync);
 			ClearAllCommand = new RelayCommand(status.ClearAll);
 			HoldCommand = new RelayCommand(ToggleHold);
+			CycleThemeCommand = new RelayCommand(CycleTheme);
+			ApplyTheme();
 
 			journal.EntryAdded += OnJournalEntry;
 			status.Changed += OnStatusChanged;
@@ -113,13 +117,32 @@ namespace MimaEmuPrinter.App.ViewModels
 
 		public ObservableCollection<FaultItemViewModel> Faults { get; } = [];
 
-		public ObservableCollection<String> JournalLines { get; } = [];
+		public ObservableCollection<JournalLineViewModel> JournalLines { get; } = [];
 
 		public ICommand StartStopCommand { get; }
 
 		public ICommand ClearAllCommand { get; }
 
 		public ICommand HoldCommand { get; }
+
+		public ICommand CycleThemeCommand { get; }
+
+		/// <summary>Label of the theme button: the current preference (Auto follows the system).</summary>
+		public String ThemeText
+		{
+			get
+			{
+				switch (settings.Theme)
+				{
+					case ThemePreference.Light:
+						return "Thème clair";
+					case ThemePreference.Dark:
+						return "Thème sombre";
+					default:
+						return "Thème auto";
+				}
+			}
+		}
 
 		public String ListenAddress
 		{
@@ -331,6 +354,47 @@ namespace MimaEmuPrinter.App.ViewModels
 			server.Start(address, port);
 		}
 
+		private void CycleTheme()
+		{
+			switch (settings.Theme)
+			{
+				case ThemePreference.System:
+					settings.Theme = ThemePreference.Light;
+					break;
+				case ThemePreference.Light:
+					settings.Theme = ThemePreference.Dark;
+					break;
+				default:
+					settings.Theme = ThemePreference.System;
+					break;
+			}
+
+			ApplyTheme();
+			OnPropertyChanged(nameof(ThemeText));
+			SaveSettings();
+		}
+
+		private void ApplyTheme()
+		{
+			if (Application.Current == null)
+			{
+				return;
+			}
+
+			switch (settings.Theme)
+			{
+				case ThemePreference.Light:
+					Application.Current.RequestedThemeVariant = ThemeVariant.Light;
+					break;
+				case ThemePreference.Dark:
+					Application.Current.RequestedThemeVariant = ThemeVariant.Dark;
+					break;
+				default:
+					Application.Current.RequestedThemeVariant = ThemeVariant.Default;
+					break;
+			}
+		}
+
 		private void ToggleHold()
 		{
 			if (display.IsHeld)
@@ -358,7 +422,7 @@ namespace MimaEmuPrinter.App.ViewModels
 		{
 			PostToUi(() =>
 			{
-				JournalLines.Add(entry.ToString());
+				JournalLines.Add(new JournalLineViewModel(entry));
 				while (JournalLines.Count > JournalScreenLines)
 				{
 					JournalLines.RemoveAt(0);
