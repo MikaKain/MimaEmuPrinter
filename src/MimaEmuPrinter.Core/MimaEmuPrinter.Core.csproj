@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<AssemblyName>MimaEmuPrinter.Core</AssemblyName>
+		<RootNamespace>MimaEmuPrinter.Core</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="PDFsharp" Version="6.2.4" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Assets\Fonts\*.ttf" LogicalName="MimaEmuPrinter.Core.Fonts.%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="MimaEmuPrinter.Tests" />
+	</ItemGroup>
+
+</Project>

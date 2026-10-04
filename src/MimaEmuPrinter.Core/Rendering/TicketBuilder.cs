@@ -1,0 +1,405 @@
+namespace MimaEmuPrinter.Core.Rendering
+{
+	using System;
+	using System.Collections.Generic;
+	using MimaEmuPrinter.Core.Paper;
+	using MimaEmuPrinter.Core.Protocol;
+
+	public sealed class ColumnOverflowEventArgs : EventArgs
+	{
+		public ColumnOverflowEventArgs(Int32 lineNumber, Int32 length, Int32 columns)
+		{
+			LineNumber = lineNumber;
+			Length = length;
+			Columns = columns;
+		}
+
+		public Int32 LineNumber { get; }
+
+		public Int32 Length { get; }
+
+		public Int32 Columns { get; }
+	}
+
+	/// <summary>
+	/// Builds the virtual ticket: a list of styled lines, `columns` wide. Text wider than the paper is
+	/// truncated with a marker (and reported), except URLs and QR / barcode lines which wrap.
+	/// Style state (bold, alignment, code page...) is kept between tickets, like on a real printer.
+	/// </summary>
+	public sealed class TicketBuilder
+	{
+		private const Int32 MaxLines = 2000;
+		private const Int32 MaxStoredColumns = 512;
+		private const Int32 MaxFeedLines = 255;
+		private const Int32 DotsPerTextLine = 30;
+		private const Int32 TabWidth = 8;
+		private const String OverflowMarker = "»";
+
+		private readonly List<TicketLine> lines = new List<TicketLine>();
+		private readonly List<TicketRun> runs = new List<TicketRun>();
+
+		private Int32 columns = PaperProfile.Mm80Col42.Columns;
+		private Int32 logicalColumns;
+		private Int32 storedColumns;
+		private TicketAlignment lineAlignment;
+		private TicketAlignment alignment;
+		private Boolean bold;
+		private Boolean underline;
+		private Boolean doubleWidth;
+		private Boolean doubleHeight;
+		private Boolean afterCarriageReturn;
+		private Char[] codePage = CodePageTable.Default;
+		private Int32 version;
+
+		public event EventHandler<ColumnOverflowEventArgs>? ColumnOverflow;
+
+		/// <summary>Incremented on every change of the ticket content.</summary>
+		public Int32 Version
+		{
+			get { return version; }
+		}
+
+		public Int32 Columns
+		{
+			get { return columns; }
+		}
+
+		/// <summary>Number of committed lines (the line being typed is not counted).</summary>
+		public Int32 LineCount
+		{
+			get { return lines.Count; }
+		}
+
+		/// <summary>Starts an empty ticket with the given paper. The text style is kept.</summary>
+		public void BeginTicket(PaperProfile profile)
+		{
+			lines.Clear();
+			runs.Clear();
+			logicalColumns = 0;
+			storedColumns = 0;
+			afterCarriageReturn = false;
+			columns = profile.Columns;
+			version++;
+		}
+
+		/// <summary>ESC @: back to the default style, alignment and code page.</summary>
+		public void Initialize()
+		{
+			bold = false;
+			underline = false;
+			doubleWidth = false;
+			doubleHeight = false;
+			alignment = TicketAlignment.Left;
+			codePage = CodePageTable.Default;
+		}
+
+		public void SetPrintMode(Byte value)
+		{
+			bold = (value & 0x08) != 0;
+			doubleHeight = (value & 0x10) != 0;
+			doubleWidth = (value & 0x20) != 0;
+			underline = (value & 0x80) != 0;
+		}
+
+		public void SetCharacterSize(Byte value)
+		{
+			doubleWidth = ((value >> 4) & 0x07) >= 1;
+			doubleHeight = (value & 0x07) >= 1;
+		}
+
+		public void SetEmphasis(Byte value)
+		{
+			bold = (value & 0x01) != 0;
+		}
+
+		public void SetUnderline(Byte value)
+		{
+			underline = (value & 0x03) != 0;
+		}
+
+		/// <summary>ESC a n. Like on a real printer it only applies at the beginning of a line.</summary>
+		public void SetAlignment(Byte value)
+		{
+			if (logicalColumns > 0)
+			{
+				return;
+			}
+
+			switch (value)
+			{
+				case 1:
+				case 49:
+					alignment = TicketAlignment.Center;
+					break;
+				case 2:
+				case 50:
+					alignment = TicketAlignment.Right;
+					break;
+				default:
+					alignment = TicketAlignment.Left;
+					break;
+			}
+		}
+
+		public void SetCodePage(Byte value)
+		{
+			codePage = CodePageTable.Get(value);
+		}
+
+		public void AppendByte(Byte value)
+		{
+			AppendChar(codePage[value]);
+		}
+
+		public void LineFeed()
+		{
+			if (afterCarriageReturn)
+			{
+				afterCarriageReturn = false;
+				return;
+			}
+
+			CommitLine(false);
+		}
+
+		public void CarriageReturn()
+		{
+			if (logicalColumns == 0)
+			{
+				return;
+			}
+
+			CommitLine(false);
+			afterCarriageReturn = true;
+		}
+
+		public void Tab()
+		{
+			Int32 spaces = TabWidth - (logicalColumns % TabWidth);
+			for (Int32 index = 0; index < spaces; index++)
+			{
+				AppendChar(' ');
+			}
+		}
+
+		public void FeedLines(Int32 count)
+		{
+			CommitIfPending();
+			Int32 blank = Math.Min(Math.Max(count, 0), MaxFeedLines);
+			for (Int32 index = 0; index < blank; index++)
+			{
+				AddLine(new TicketLine(TicketLineKind.Text, alignment, Array.Empty<TicketRun>()));
+			}
+
+			version++;
+		}
+
+		public void FeedDots(Int32 dots)
+		{
+			if (dots <= 0)
+			{
+				return;
+			}
+
+			FeedLines(Math.Max(1, (dots + (DotsPerTextLine / 2)) / DotsPerTextLine));
+		}
+
+		/// <summary>Adds the grey "logo" band standing for a raster bitmap.</summary>
+		public void AddBand(String text, Int32 heightLines)
+		{
+			CommitIfPending();
+			AddLine(new TicketLine(TicketLineKind.Band, TicketAlignment.Center, Array.Empty<TicketRun>(), text, heightLines));
+			version++;
+		}
+
+		public void AddCutMark()
+		{
+			CommitIfPending();
+			AddLine(new TicketLine(TicketLineKind.Cut, TicketAlignment.Center, Array.Empty<TicketRun>()));
+			version++;
+		}
+
+		/// <summary>Adds a line generated by the emulator ([QR] or [BAR] marker): it wraps instead of being truncated.</summary>
+		public void AddNotice(String text)
+		{
+			CommitIfPending();
+			foreach (Char value in text)
+			{
+				AppendChar(value);
+			}
+
+			CommitLine(true);
+		}
+
+		/// <summary>The ticket so far, including the line being typed.</summary>
+		public Ticket Snapshot()
+		{
+			List<TicketLine> result = new List<TicketLine>(lines);
+			if (logicalColumns > 0)
+			{
+				result.AddRange(FormatLine(new List<TicketRun>(runs), logicalColumns, lineAlignment, false, out Int32 _));
+			}
+
+			return new Ticket(columns, result);
+		}
+
+		private void AppendChar(Char value)
+		{
+			afterCarriageReturn = false;
+			Int32 width = doubleWidth ? 2 : 1;
+			if (logicalColumns == 0)
+			{
+				lineAlignment = alignment;
+			}
+
+			logicalColumns += width;
+			if (storedColumns + width > MaxStoredColumns)
+			{
+				return;
+			}
+
+			storedColumns += width;
+			if (runs.Count > 0 && HasCurrentStyle(runs[runs.Count - 1]))
+			{
+				TicketRun last = runs[runs.Count - 1];
+				runs[runs.Count - 1] = last with { Text = last.Text + value };
+			}
+			else
+			{
+				runs.Add(new TicketRun(value.ToString(), bold, underline, doubleWidth, doubleHeight));
+			}
+
+			version++;
+		}
+
+		private Boolean HasCurrentStyle(TicketRun run)
+		{
+			return !run.IsMarker && run.Bold == bold && run.Underline == underline && run.DoubleWidth == doubleWidth && run.DoubleHeight == doubleHeight;
+		}
+
+		private void CommitIfPending()
+		{
+			if (logicalColumns > 0)
+			{
+				CommitLine(false);
+			}
+		}
+
+		private void CommitLine(Boolean forceWrap)
+		{
+			afterCarriageReturn = false;
+			TicketAlignment lineAlign = logicalColumns == 0 ? alignment : lineAlignment;
+			Int32 lineNumber = lines.Count + 1;
+			Int32 logical = logicalColumns;
+			List<TicketRun> current = new List<TicketRun>(runs);
+			runs.Clear();
+			logicalColumns = 0;
+			storedColumns = 0;
+
+			List<TicketLine> formatted = FormatLine(current, logical, lineAlign, forceWrap, out Int32 overflowLength);
+			foreach (TicketLine line in formatted)
+			{
+				AddLine(line);
+			}
+
+			version++;
+			if (overflowLength > 0)
+			{
+				ColumnOverflow?.Invoke(this, new ColumnOverflowEventArgs(lineNumber, overflowLength, columns));
+			}
+		}
+
+		private void AddLine(TicketLine line)
+		{
+			if (lines.Count < MaxLines)
+			{
+				lines.Add(line);
+			}
+		}
+
+		private List<TicketLine> FormatLine(List<TicketRun> source, Int32 logical, TicketAlignment lineAlign, Boolean forceWrap, out Int32 overflowLength)
+		{
+			overflowLength = 0;
+			List<TicketLine> result = new List<TicketLine>();
+			if (logical <= columns)
+			{
+				result.Add(new TicketLine(TicketLineKind.Text, lineAlign, source));
+				return result;
+			}
+
+			if (forceWrap || IsWrappable(source))
+			{
+				List<TicketRun> rest = source;
+				while (CountColumns(rest) > columns)
+				{
+					Split(rest, columns, out List<TicketRun> head, out List<TicketRun> tail);
+					result.Add(new TicketLine(TicketLineKind.Text, lineAlign, head));
+					rest = tail;
+				}
+
+				if (rest.Count > 0)
+				{
+					result.Add(new TicketLine(TicketLineKind.Text, lineAlign, rest));
+				}
+
+				return result;
+			}
+
+			Split(source, columns - 1, out List<TicketRun> kept, out List<TicketRun> _);
+			kept.Add(new TicketRun(OverflowMarker, IsMarker: true));
+			overflowLength = logical;
+			result.Add(new TicketLine(TicketLineKind.Text, lineAlign, kept));
+			return result;
+		}
+
+		private static Boolean IsWrappable(List<TicketRun> source)
+		{
+			String text = String.Concat(source.ConvertAll(run => run.Text)).TrimStart();
+			return text.Contains("://", StringComparison.Ordinal) || text.StartsWith("www.", StringComparison.OrdinalIgnoreCase);
+		}
+
+		private static Int32 CountColumns(List<TicketRun> source)
+		{
+			Int32 total = 0;
+			foreach (TicketRun run in source)
+			{
+				total += run.Columns;
+			}
+
+			return total;
+		}
+
+		private static void Split(List<TicketRun> source, Int32 maxColumns, out List<TicketRun> head, out List<TicketRun> tail)
+		{
+			head = new List<TicketRun>();
+			tail = new List<TicketRun>();
+			Int32 used = 0;
+			Boolean full = false;
+			foreach (TicketRun run in source)
+			{
+				if (full)
+				{
+					tail.Add(run);
+					continue;
+				}
+
+				Int32 cellWidth = run.DoubleWidth ? 2 : 1;
+				Int32 fit = Math.Min(run.Text.Length, Math.Max(0, maxColumns - used) / cellWidth);
+				if (fit >= run.Text.Length)
+				{
+					head.Add(run);
+					used += run.Columns;
+					continue;
+				}
+
+				if (fit > 0)
+				{
+					head.Add(run with { Text = run.Text.Substring(0, fit) });
+				}
+
+				tail.Add(run with { Text = run.Text.Substring(fit) });
+				full = true;
+			}
+		}
+	}
+}

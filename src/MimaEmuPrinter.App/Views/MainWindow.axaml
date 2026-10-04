@@ -1,0 +1,158 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:MimaEmuPrinter.App.ViewModels"
+        xmlns:ctl="using:MimaEmuPrinter.App.Controls"
+        xmlns:paper="using:MimaEmuPrinter.Core.Paper"
+        x:Class="MimaEmuPrinter.App.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="MimaEmuPrinter - émulateur d'imprimante thermique ESC/POS"
+        Width="1280" Height="800" MinWidth="960" MinHeight="600"
+        WindowStartupLocation="CenterScreen">
+
+	<Window.Styles>
+		<Style Selector="Border.card">
+			<Setter Property="Background" Value="White" />
+			<Setter Property="BorderBrush" Value="#D5D9DE" />
+			<Setter Property="BorderThickness" Value="1" />
+			<Setter Property="CornerRadius" Value="6" />
+			<Setter Property="Padding" Value="12" />
+		</Style>
+		<Style Selector="TextBlock.heading">
+			<Setter Property="FontSize" Value="15" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="Margin" Value="0,0,0,8" />
+		</Style>
+		<Style Selector="TextBlock.caption">
+			<Setter Property="FontSize" Value="11" />
+			<Setter Property="Opacity" Value="0.65" />
+		</Style>
+	</Window.Styles>
+
+	<Grid RowDefinitions="Auto,*,6,170" Background="#F1F3F5">
+
+		<!-- Top: identity and connection -->
+		<Border Grid.Row="0" Classes="card" Margin="10,10,10,0">
+			<Grid ColumnDefinitions="Auto,24,Auto,Auto,16,Auto,Auto,16,Auto,*">
+				<StackPanel Grid.Column="0" VerticalAlignment="Center">
+					<TextBlock Text="MimaEmuPrinter" FontSize="20" FontWeight="Bold" />
+					<TextBlock Classes="caption" Text="Imprimante thermique virtuelle ESC/POS" />
+				</StackPanel>
+
+				<TextBlock Grid.Column="2" Text="Adresse IP d'écoute" VerticalAlignment="Center" Margin="0,0,8,0" />
+				<ComboBox Grid.Column="3" Width="190" IsEditable="True" VerticalAlignment="Center"
+				          ItemsSource="{Binding AddressChoices}"
+				          Text="{Binding ListenAddress, Mode=TwoWay}"
+				          IsEnabled="{Binding CanEditConnection}" />
+
+				<TextBlock Grid.Column="5" Text="Port" VerticalAlignment="Center" Margin="0,0,8,0" />
+				<NumericUpDown Grid.Column="6" Width="130" Minimum="1" Maximum="65535" Increment="1" FormatString="0"
+				               VerticalAlignment="Center"
+				               Value="{Binding PortValue, Mode=TwoWay}"
+				               IsEnabled="{Binding CanEditConnection}" />
+
+				<Button Grid.Column="8" Content="{Binding StartStopText}" Command="{Binding StartStopCommand}"
+				        MinWidth="110" HorizontalContentAlignment="Center" VerticalAlignment="Center" />
+
+				<StackPanel Grid.Column="9" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Spacing="8">
+					<Ellipse Width="14" Height="14" Fill="{Binding StatusBrush}" VerticalAlignment="Center" />
+					<TextBlock Text="{Binding StatusText}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+				</StackPanel>
+			</Grid>
+		</Border>
+
+		<!-- Middle: paper, events, virtual ticket -->
+		<Grid Grid.Row="1" ColumnDefinitions="270,330,*" Margin="10,10,10,0">
+
+			<Border Grid.Column="0" Classes="card" Margin="0,0,10,0" VerticalAlignment="Top">
+				<StackPanel>
+					<TextBlock Classes="heading" Text="Papier" />
+					<ListBox ItemsSource="{Binding PaperOptions}" SelectedItem="{Binding SelectedPaper, Mode=TwoWay}" Background="Transparent">
+						<ListBox.ItemTemplate>
+							<DataTemplate x:DataType="paper:PaperProfile">
+								<StackPanel Margin="0,4">
+									<TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+									<TextBlock Classes="caption" Text="{Binding Usage}" />
+									<TextBlock Classes="caption">
+										<Run Text="{Binding Columns}" /> colonnes, <Run Text="{Binding HeadDots}" /> points de tête
+									</TextBlock>
+								</StackPanel>
+							</DataTemplate>
+						</ListBox.ItemTemplate>
+					</ListBox>
+					<TextBlock Classes="caption" TextWrapping="Wrap" Margin="0,8,0,0"
+					           Text="Le changement s'applique au job suivant, pas au ticket en cours de rendu." />
+				</StackPanel>
+			</Border>
+
+			<Border Grid.Column="1" Classes="card" Margin="0,0,10,0">
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Top" Classes="heading" Text="Événements" />
+					<Button DockPanel.Dock="Bottom" Content="Tout effacer" Command="{Binding ClearAllCommand}"
+					        HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,8,0,0" />
+					<ItemsControl ItemsSource="{Binding Faults}">
+						<ItemsControl.ItemTemplate>
+							<DataTemplate x:DataType="vm:FaultItemViewModel">
+								<Grid ColumnDefinitions="*,Auto" Margin="0,1" ToolTip.Tip="{Binding Effect}">
+									<StackPanel VerticalAlignment="Center">
+										<TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
+										<TextBlock Classes="caption" Text="{Binding CommandHint}" />
+									</StackPanel>
+									<ToggleSwitch Grid.Column="1" OnContent="" OffContent="" Margin="8,0,0,0"
+									              IsChecked="{Binding IsChecked, Mode=TwoWay}"
+									              IsEnabled="{Binding CanToggle}" />
+								</Grid>
+							</DataTemplate>
+						</ItemsControl.ItemTemplate>
+					</ItemsControl>
+				</DockPanel>
+			</Border>
+
+			<Border Grid.Column="2" Classes="card">
+				<DockPanel>
+					<Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,8">
+						<TextBlock Classes="heading" Text="{Binding DisplayTitle}" Margin="0" VerticalAlignment="Center" />
+						<Border Grid.Column="1" Width="44" Height="44" CornerRadius="22" Background="#2B6CB0" Margin="0,0,12,0"
+						        IsVisible="{Binding HasCountdown}" ToolTip.Tip="Secondes avant effacement du ticket">
+							<TextBlock Text="{Binding CountdownText}" Foreground="White" FontSize="22" FontWeight="Bold"
+							           HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<Button Grid.Column="2" Content="{Binding HoldButtonText}" Command="{Binding HoldCommand}"
+						        IsEnabled="{Binding CanHold}" MinWidth="90" HorizontalContentAlignment="Center" VerticalAlignment="Center" />
+					</Grid>
+					<TextBlock DockPanel.Dock="Top" Text="{Binding NoticeText}" IsVisible="{Binding HasNotice}"
+					           Foreground="Firebrick" FontWeight="SemiBold" Margin="0,0,0,8" />
+					<ScrollViewer Name="TicketScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+					              Background="#E4E7EB">
+						<ctl:TicketView HorizontalAlignment="Center" VerticalAlignment="Top" Margin="16"
+						                Ticket="{Binding DisplayedTicket}"
+						                Columns="{Binding DisplayedColumns}"
+						                PaperWidthMm="{Binding DisplayedPaperMm}" />
+					</ScrollViewer>
+				</DockPanel>
+			</Border>
+		</Grid>
+
+		<GridSplitter Grid.Row="2" Background="Transparent" ResizeDirection="Rows" />
+
+		<!-- Bottom: journal -->
+		<Border Grid.Row="3" Classes="card" Margin="10,0,10,10">
+			<DockPanel>
+				<TextBlock DockPanel.Dock="Top" Classes="heading" Text="Journal des arrivées" Margin="0,0,0,6" />
+				<ListBox Name="JournalList" ItemsSource="{Binding JournalLines}" Background="Transparent"
+				         FontFamily="avares://MimaEmuPrinter/Assets/Fonts#Liberation Mono" FontSize="12">
+					<ListBox.ItemTemplate>
+						<DataTemplate x:DataType="x:String">
+							<TextBlock Text="{Binding}" />
+						</DataTemplate>
+					</ListBox.ItemTemplate>
+					<ListBox.Styles>
+						<Style Selector="ListBoxItem">
+							<Setter Property="Padding" Value="4,1" />
+							<Setter Property="MinHeight" Value="0" />
+						</Style>
+					</ListBox.Styles>
+				</ListBox>
+			</DockPanel>
+		</Border>
+	</Grid>
+</Window>

@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/MimaEmuPrinter.App/MimaEmuPrinter.App.csproj" />
+    <Project Path="src/MimaEmuPrinter.Core/MimaEmuPrinter.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MimaEmuPrinter.Tests/MimaEmuPrinter.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/MimaEmuPrinter.TestClient/MimaEmuPrinter.TestClient.csproj" />
+  </Folder>
+</Solution>

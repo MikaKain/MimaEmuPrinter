@@ -1,0 +1,66 @@
+namespace MimaEmuPrinter.App.Views
+{
+	using System;
+	using Avalonia;
+	using Avalonia.Controls;
+	using Avalonia.Platform;
+	using Avalonia.Threading;
+	using MimaEmuPrinter.App.ViewModels;
+
+	public sealed partial class MainWindow : Window
+	{
+		public MainWindow()
+		{
+			InitializeComponent();
+			DataContextChanged += OnDataContextChanged;
+		}
+
+		/// <summary>Opens at 1280 x 800, or as large as the screen allows when it is smaller.</summary>
+		protected override void OnOpened(EventArgs e)
+		{
+			base.OnOpened(e);
+			Screen? screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+			if (screen == null)
+			{
+				return;
+			}
+
+			Double scaling = screen.Scaling;
+			Double maxWidth = (screen.WorkingArea.Width / scaling) - 16;
+			Double maxHeight = (screen.WorkingArea.Height / scaling) - 40;
+			if (Width <= maxWidth && Height <= maxHeight)
+			{
+				return;
+			}
+
+			Width = Math.Max(MinWidth, Math.Min(Width, maxWidth));
+			Height = Math.Max(MinHeight, Math.Min(Height, maxHeight));
+			Int32 x = screen.WorkingArea.X + (Int32)Math.Max(0, (screen.WorkingArea.Width - (Width * scaling)) / 2);
+			Int32 y = screen.WorkingArea.Y + (Int32)Math.Max(0, (screen.WorkingArea.Height - ((Height + 32) * scaling)) / 2);
+			Position = new PixelPoint(x, y);
+		}
+
+		private void OnDataContextChanged(Object? sender, EventArgs e)
+		{
+			if (DataContext is MainWindowViewModel viewModel)
+			{
+				viewModel.JournalChanged += (s, args) => Dispatcher.UIThread.Post(ScrollJournalToEnd, DispatcherPriority.Background);
+				viewModel.TicketContentChanged += (s, args) => Dispatcher.UIThread.Post(ScrollTicketToEnd, DispatcherPriority.Background);
+			}
+		}
+
+		private void ScrollJournalToEnd()
+		{
+			Int32 count = JournalList.ItemCount;
+			if (count > 0)
+			{
+				JournalList.ScrollIntoView(count - 1);
+			}
+		}
+
+		private void ScrollTicketToEnd()
+		{
+			TicketScroll.ScrollToEnd();
+		}
+	}
+}

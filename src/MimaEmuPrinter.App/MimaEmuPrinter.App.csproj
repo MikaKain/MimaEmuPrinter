@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<AssemblyName>MimaEmuPrinter</AssemblyName>
+		<RootNamespace>MimaEmuPrinter.App</RootNamespace>
+		<ApplicationIcon />
+		<BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Avalonia" Version="11.3.22" />
+		<PackageReference Include="Avalonia.Desktop" Version="11.3.22" />
+		<PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.22" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\MimaEmuPrinter.Core\MimaEmuPrinter.Core.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AvaloniaResource Include="..\MimaEmuPrinter.Core\Assets\Fonts\*.ttf">
+			<Link>Assets\Fonts\%(Filename)%(Extension)</Link>
+		</AvaloniaResource>
+	</ItemGroup>
+
+</Project>
