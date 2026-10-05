@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="MimaEmuPrinter.App.Controls.TitleBar"
+             Height="38">
+
+	<UserControl.Styles>
+		<Style Selector="Button.caption">
+			<Setter Property="Width" Value="46" />
+			<Setter Property="Height" Value="38" />
+			<Setter Property="Padding" Value="0" />
+			<Setter Property="CornerRadius" Value="0" />
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="HorizontalContentAlignment" Value="Center" />
+			<Setter Property="VerticalContentAlignment" Value="Center" />
+		</Style>
+		<Style Selector="Button.caption:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource SoftButtonHover}" />
+		</Style>
+		<Style Selector="Button.caption:pressed /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="{DynamicResource SoftButtonBackground}" />
+		</Style>
+		<Style Selector="Button.captionClose:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+			<Setter Property="Background" Value="#E81123" />
+		</Style>
+		<Style Selector="Button.captionClose:pointerover Path">
+			<Setter Property="Stroke" Value="White" />
+		</Style>
+		<Style Selector="Button.caption Path">
+			<Setter Property="Stroke" Value="{DynamicResource SystemControlForegroundBaseHighBrush}" />
+			<Setter Property="StrokeThickness" Value="1" />
+		</Style>
+	</UserControl.Styles>
+
+	<Grid Name="Bar" Background="Transparent" ColumnDefinitions="Auto,*,Auto">
+		<StackPanel Orientation="Horizontal" Margin="12,0,0,0" Spacing="10" VerticalAlignment="Center" IsHitTestVisible="False">
+			<Image Source="avares://MimaEmuPrinter/Assets/app.png" Width="18" Height="18" />
+			<TextBlock Name="TitleText" FontSize="12" VerticalAlignment="Center" />
+		</StackPanel>
+
+		<StackPanel Grid.Column="2" Orientation="Horizontal" Name="CaptionButtons">
+			<Button Classes="caption" Name="MinimizeButton" ToolTip.Tip="Réduire" Click="OnMinimize">
+				<Path Data="M0,0.5 L10,0.5" />
+			</Button>
+			<Button Classes="caption" Name="MaximizeButton" ToolTip.Tip="Agrandir" Click="OnMaximize">
+				<Path Name="MaximizeGlyph" Data="M0.5,0.5 L9.5,0.5 L9.5,9.5 L0.5,9.5 Z" />
+			</Button>
+			<Button Classes="caption captionClose" Name="CloseButton" ToolTip.Tip="Fermer" Click="OnClose">
+				<Path Data="M0,0 L10,10 M10,0 L0,10" />
+			</Button>
+		</StackPanel>
+	</Grid>
+</UserControl>

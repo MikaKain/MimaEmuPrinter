@@ -1,6 +1,7 @@
 namespace MimaEmuPrinter.App.Views
 {
 	using Avalonia.Controls;
+	using MimaEmuPrinter.App.Controls;
 
 	/// <summary>The events page: the nine fault switches, opened from the main window while the printer runs.</summary>
 	public sealed partial class EventsWindow : Window
@@ -8,6 +9,7 @@ namespace MimaEmuPrinter.App.Views
 		public EventsWindow()
 		{
 			InitializeComponent();
+			TitleBar.Apply(this);
 		}
 	}
 }

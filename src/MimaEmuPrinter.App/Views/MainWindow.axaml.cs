@@ -6,6 +6,7 @@ namespace MimaEmuPrinter.App.Views
 	using Avalonia.Interactivity;
 	using Avalonia.Platform;
 	using Avalonia.Threading;
+	using MimaEmuPrinter.App.Controls;
 	using ViewModels;
 
 	public sealed partial class MainWindow : Window
@@ -15,6 +16,7 @@ namespace MimaEmuPrinter.App.Views
 		public MainWindow()
 		{
 			InitializeComponent();
+			TitleBar.Apply(this);
 			DataContextChanged += OnDataContextChanged;
 		}
 

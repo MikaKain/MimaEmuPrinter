@@ -1,38 +1,43 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="using:MimaEmuPrinter.App.ViewModels"
+        xmlns:ctl="using:MimaEmuPrinter.App.Controls"
         x:Class="MimaEmuPrinter.App.Views.EventsWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="MimaEmuPrinter - Événements"
+        Icon="avares://MimaEmuPrinter/Assets/app.png"
         Width="400" Height="590" MinWidth="360" MinHeight="400"
         ShowInTaskbar="False" WindowStartupLocation="Manual">
 
-	<Border Background="{DynamicResource AppBackground}" Padding="12">
-		<Border Classes="card">
-			<DockPanel>
-				<TextBlock DockPanel.Dock="Top" Text="Événements de panne" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,2" />
-				<TextBlock DockPanel.Dock="Top" Classes="caption" Text="Effet immédiat, y compris pendant une connexion ouverte."
-				           Margin="0,0,0,8" />
-				<Button DockPanel.Dock="Bottom" Classes="soft" Content="Tout effacer" Command="{Binding ClearAllCommand}"
-				        HorizontalAlignment="Stretch" Margin="0,8,0,0" />
-				<ScrollViewer VerticalScrollBarVisibility="Auto">
-					<ItemsControl ItemsSource="{Binding Faults}">
-						<ItemsControl.ItemTemplate>
-							<DataTemplate x:DataType="vm:FaultItemViewModel">
-								<Grid ColumnDefinitions="*,Auto" Margin="0,1" ToolTip.Tip="{Binding Effect}">
-									<StackPanel VerticalAlignment="Center">
-										<TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
-										<TextBlock Text="{Binding CommandHint}" Classes="caption" />
-									</StackPanel>
-									<ToggleSwitch Grid.Column="1" OnContent="" OffContent="" Margin="8,0,0,0"
-									              IsChecked="{Binding IsChecked, Mode=TwoWay}"
-									              IsEnabled="{Binding CanToggle}" />
-								</Grid>
-							</DataTemplate>
-						</ItemsControl.ItemTemplate>
-					</ItemsControl>
-				</ScrollViewer>
-			</DockPanel>
+	<DockPanel>
+		<ctl:TitleBar DockPanel.Dock="Top" CanMaximize="False" />
+		<Border Background="{DynamicResource AppBackground}" Padding="12">
+			<Border Classes="card">
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Top" Text="Événements de panne" FontSize="15" FontWeight="SemiBold" Margin="0,0,0,2" />
+					<TextBlock DockPanel.Dock="Top" Classes="caption" Text="Effet immédiat, y compris pendant une connexion ouverte."
+					           Margin="0,0,0,8" />
+					<Button DockPanel.Dock="Bottom" Classes="soft" Content="Tout effacer" Command="{Binding ClearAllCommand}"
+					        HorizontalAlignment="Stretch" Margin="0,8,0,0" />
+					<ScrollViewer VerticalScrollBarVisibility="Auto">
+						<ItemsControl ItemsSource="{Binding Faults}">
+							<ItemsControl.ItemTemplate>
+								<DataTemplate x:DataType="vm:FaultItemViewModel">
+									<Grid ColumnDefinitions="*,Auto" Margin="0,1" ToolTip.Tip="{Binding Effect}">
+										<StackPanel VerticalAlignment="Center">
+											<TextBlock Text="{Binding Label}" FontWeight="SemiBold" />
+											<TextBlock Text="{Binding CommandHint}" Classes="caption" />
+										</StackPanel>
+										<ToggleSwitch Grid.Column="1" OnContent="" OffContent="" Margin="8,0,0,0"
+										              IsChecked="{Binding IsChecked, Mode=TwoWay}"
+										              IsEnabled="{Binding CanToggle}" />
+									</Grid>
+								</DataTemplate>
+							</ItemsControl.ItemTemplate>
+						</ItemsControl>
+					</ScrollViewer>
+				</DockPanel>
+			</Border>
 		</Border>
-	</Border>
+	</DockPanel>
 </Window>

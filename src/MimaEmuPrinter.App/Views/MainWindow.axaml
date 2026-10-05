@@ -6,118 +6,122 @@
         x:Class="MimaEmuPrinter.App.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="MimaEmuPrinter"
+        Icon="avares://MimaEmuPrinter/Assets/app.png"
         Width="580" Height="800" MinWidth="500" MinHeight="560"
         WindowStartupLocation="CenterScreen">
 
-	<Grid RowDefinitions="Auto,Auto,*,6,170" Background="{DynamicResource AppBackground}">
+	<DockPanel>
+		<ctl:TitleBar DockPanel.Dock="Top" />
+		<Grid RowDefinitions="Auto,Auto,*,6,170" Background="{DynamicResource AppBackground}">
 
-		<!-- Identity and state -->
-		<Border Grid.Row="0" Classes="card" Margin="10,10,10,0">
-			<Grid ColumnDefinitions="*,Auto">
-				<StackPanel VerticalAlignment="Center">
-					<TextBlock Text="MimaEmuPrinter" FontSize="20" FontWeight="Bold" />
-					<TextBlock Classes="caption" Text="{Binding ConnectionSummary}" />
-				</StackPanel>
-				<StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="14">
-					<Button Classes="soft" Content="{Binding ThemeText}" Command="{Binding CycleThemeCommand}"
-					        Padding="10,5" FontSize="12" ToolTip.Tip="Basculer entre thème auto (système), clair et sombre" />
-					<StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-						<Ellipse Width="14" Height="14" Fill="{Binding StatusBrush}" VerticalAlignment="Center" />
-						<TextBlock Text="{Binding StatusText}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+			<!-- Identity and state -->
+			<Border Grid.Row="0" Classes="card" Margin="10,10,10,0">
+				<Grid ColumnDefinitions="*,Auto">
+					<StackPanel VerticalAlignment="Center">
+						<TextBlock Text="MimaEmuPrinter" FontSize="20" FontWeight="Bold" />
+						<TextBlock Classes="caption" Text="{Binding ConnectionSummary}" />
 					</StackPanel>
-				</StackPanel>
-			</Grid>
-		</Border>
-
-		<!-- Before start: address, port and paper -->
-		<Border Grid.Row="1" Grid.RowSpan="2" Classes="card" Margin="10,10,10,0" VerticalAlignment="Top"
-		        IsVisible="{Binding CanEditConnection}">
-			<StackPanel Spacing="12">
-				<TextBlock Classes="heading" Text="Démarrage de l'imprimante" Margin="0" />
-
-				<Grid ColumnDefinitions="Auto,*,Auto,Auto">
-					<TextBlock Text="Adresse IP d'écoute" VerticalAlignment="Center" Margin="0,0,8,0" />
-					<ComboBox Grid.Column="1" HorizontalAlignment="Stretch" IsEditable="True" VerticalAlignment="Center"
-					          ItemsSource="{Binding AddressChoices}"
-					          Text="{Binding ListenAddress, Mode=TwoWay}" />
-					<TextBlock Grid.Column="2" Text="Port" VerticalAlignment="Center" Margin="16,0,8,0" />
-					<NumericUpDown Grid.Column="3" Width="130" Minimum="1" Maximum="65535" Increment="1" FormatString="0"
-					               VerticalAlignment="Center" Value="{Binding PortValue, Mode=TwoWay}" />
+					<StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Spacing="14">
+						<Button Classes="soft" Content="{Binding ThemeText}" Command="{Binding CycleThemeCommand}"
+						        Padding="10,5" FontSize="12" ToolTip.Tip="Basculer entre thème auto (système), clair et sombre" />
+						<StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+							<Ellipse Width="14" Height="14" Fill="{Binding StatusBrush}" VerticalAlignment="Center" />
+							<TextBlock Text="{Binding StatusText}" FontSize="18" FontWeight="SemiBold" VerticalAlignment="Center" />
+						</StackPanel>
+					</StackPanel>
 				</Grid>
+			</Border>
 
-				<StackPanel>
-					<TextBlock Text="Papier" FontWeight="SemiBold" Margin="0,0,0,4" />
-					<ListBox ItemsSource="{Binding PaperOptions}" SelectedItem="{Binding SelectedPaper, Mode=TwoWay}" Background="Transparent">
+			<!-- Before start: address, port and paper -->
+			<Border Grid.Row="1" Grid.RowSpan="2" Classes="card" Margin="10,10,10,0" VerticalAlignment="Top"
+			        IsVisible="{Binding CanEditConnection}">
+				<StackPanel Spacing="12">
+					<TextBlock Classes="heading" Text="Démarrage de l'imprimante" Margin="0" />
+
+					<Grid ColumnDefinitions="Auto,*,Auto,Auto">
+						<TextBlock Text="Adresse IP d'écoute" VerticalAlignment="Center" Margin="0,0,8,0" />
+						<ComboBox Grid.Column="1" HorizontalAlignment="Stretch" IsEditable="True" VerticalAlignment="Center"
+						          ItemsSource="{Binding AddressChoices}"
+						          Text="{Binding ListenAddress, Mode=TwoWay}" />
+						<TextBlock Grid.Column="2" Text="Port" VerticalAlignment="Center" Margin="16,0,8,0" />
+						<NumericUpDown Grid.Column="3" Width="130" Minimum="1" Maximum="65535" Increment="1" FormatString="0"
+						               VerticalAlignment="Center" Value="{Binding PortValue, Mode=TwoWay}" />
+					</Grid>
+
+					<StackPanel>
+						<TextBlock Text="Papier" FontWeight="SemiBold" Margin="0,0,0,4" />
+						<ListBox ItemsSource="{Binding PaperOptions}" SelectedItem="{Binding SelectedPaper, Mode=TwoWay}" Background="Transparent">
+							<ListBox.ItemTemplate>
+								<DataTemplate x:DataType="paper:PaperProfile">
+									<StackPanel Margin="0,3">
+										<TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+										<TextBlock Classes="caption">
+											<Run Text="{Binding Usage}" /> · <Run Text="{Binding Columns}" /> colonnes, <Run Text="{Binding HeadDots}" /> points de tête
+										</TextBlock>
+									</StackPanel>
+								</DataTemplate>
+							</ListBox.ItemTemplate>
+						</ListBox>
+					</StackPanel>
+
+					<Button Classes="primary" Content="Démarrer" Command="{Binding StartStopCommand}" HorizontalAlignment="Stretch" />
+				</StackPanel>
+			</Border>
+
+			<!-- After start: real-time display -->
+			<Border Grid.Row="1" Grid.RowSpan="2" Classes="card" Margin="10,10,10,0" IsVisible="{Binding IsRunning}">
+				<DockPanel>
+					<Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,8">
+						<TextBlock Classes="heading" Text="{Binding DisplayTitle}" Margin="0" VerticalAlignment="Center" />
+						<Border Grid.Column="1" MinWidth="48" VerticalAlignment="Stretch" CornerRadius="6" Background="{DynamicResource AccentBrush}" Margin="0,0,10,0"
+						        IsVisible="{Binding HasCountdown}" ToolTip.Tip="Secondes avant effacement du ticket">
+							<TextBlock Text="{Binding CountdownText}" Foreground="White" FontSize="18" FontWeight="Bold"
+							           HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<Button Grid.Column="2" Classes="soft" Content="{Binding HoldButtonText}" Command="{Binding HoldCommand}"
+						        IsEnabled="{Binding CanHold}" MinWidth="90" HorizontalContentAlignment="Center" VerticalAlignment="Center" />
+					</Grid>
+					<TextBlock DockPanel.Dock="Top" Text="{Binding NoticeText}" IsVisible="{Binding HasNotice}"
+					           Classes="danger" FontWeight="SemiBold" Margin="0,0,0,8" />
+					<Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,*" Margin="0,10,0,0">
+						<Button Classes="soft" Content="Événements" Click="OnShowEventsClick" HorizontalAlignment="Stretch"
+						        Margin="0,0,5,0" />
+						<Button Grid.Column="1" Classes="danger" Content="Arrêter le service" Command="{Binding StartStopCommand}"
+						        HorizontalAlignment="Stretch" Margin="5,0,0,0" />
+					</Grid>
+					<ScrollViewer Name="TicketScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+					              Background="{DynamicResource BackdropBrush}" CornerRadius="6">
+						<ctl:TicketView HorizontalAlignment="Center" VerticalAlignment="Top" Margin="16"
+						                Ticket="{Binding DisplayedTicket}"
+						                Columns="{Binding DisplayedColumns}"
+						                PaperWidthMm="{Binding DisplayedPaperMm}" />
+					</ScrollViewer>
+				</DockPanel>
+			</Border>
+
+			<GridSplitter Grid.Row="3" Background="Transparent" ResizeDirection="Rows" />
+
+			<!-- Journal -->
+			<Border Grid.Row="4" Classes="card" Margin="10,0,10,10">
+				<DockPanel>
+					<TextBlock DockPanel.Dock="Top" Classes="heading" Text="Journal des arrivées" Margin="0,0,0,6" />
+					<ListBox Name="JournalList" ItemsSource="{Binding JournalLines}" Background="Transparent"
+					         FontFamily="avares://MimaEmuPrinter/Assets/Fonts#Liberation Mono" FontSize="12">
 						<ListBox.ItemTemplate>
-							<DataTemplate x:DataType="paper:PaperProfile">
-								<StackPanel Margin="0,3">
-									<TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
-									<TextBlock Classes="caption">
-										<Run Text="{Binding Usage}" /> · <Run Text="{Binding Columns}" /> colonnes, <Run Text="{Binding HeadDots}" /> points de tête
-									</TextBlock>
-								</StackPanel>
+							<DataTemplate x:DataType="vm:JournalLineViewModel">
+								<TextBlock Text="{Binding Text}" Classes.danger="{Binding IsError}"
+								           Classes.warning="{Binding IsWarning}" Classes.info="{Binding IsJob}" />
 							</DataTemplate>
 						</ListBox.ItemTemplate>
+						<ListBox.Styles>
+							<Style Selector="ListBoxItem">
+								<Setter Property="Padding" Value="4,1" />
+								<Setter Property="MinHeight" Value="0" />
+							</Style>
+						</ListBox.Styles>
 					</ListBox>
-				</StackPanel>
-
-				<Button Classes="primary" Content="Démarrer" Command="{Binding StartStopCommand}" HorizontalAlignment="Stretch" />
-			</StackPanel>
-		</Border>
-
-		<!-- After start: real-time display -->
-		<Border Grid.Row="1" Grid.RowSpan="2" Classes="card" Margin="10,10,10,0" IsVisible="{Binding IsRunning}">
-			<DockPanel>
-				<Grid DockPanel.Dock="Top" ColumnDefinitions="*,Auto,Auto" Margin="0,0,0,8">
-					<TextBlock Classes="heading" Text="{Binding DisplayTitle}" Margin="0" VerticalAlignment="Center" />
-					<Border Grid.Column="1" Width="40" Height="40" CornerRadius="20" Background="{DynamicResource AccentBrush}" Margin="0,0,10,0"
-					        IsVisible="{Binding HasCountdown}" ToolTip.Tip="Secondes avant effacement du ticket">
-						<TextBlock Text="{Binding CountdownText}" Foreground="White" FontSize="20" FontWeight="Bold"
-						           HorizontalAlignment="Center" VerticalAlignment="Center" />
-					</Border>
-					<Button Grid.Column="2" Classes="soft" Content="{Binding HoldButtonText}" Command="{Binding HoldCommand}"
-					        IsEnabled="{Binding CanHold}" MinWidth="90" HorizontalContentAlignment="Center" VerticalAlignment="Center" />
-				</Grid>
-				<TextBlock DockPanel.Dock="Top" Text="{Binding NoticeText}" IsVisible="{Binding HasNotice}"
-				           Classes="danger" FontWeight="SemiBold" Margin="0,0,0,8" />
-				<Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,*" Margin="0,10,0,0">
-					<Button Classes="soft" Content="Événements" Click="OnShowEventsClick" HorizontalAlignment="Stretch"
-					        Margin="0,0,5,0" />
-					<Button Grid.Column="1" Classes="danger" Content="Arrêter le service" Command="{Binding StartStopCommand}"
-					        HorizontalAlignment="Stretch" Margin="5,0,0,0" />
-				</Grid>
-				<ScrollViewer Name="TicketScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
-				              Background="{DynamicResource BackdropBrush}" CornerRadius="6">
-					<ctl:TicketView HorizontalAlignment="Center" VerticalAlignment="Top" Margin="16"
-					                Ticket="{Binding DisplayedTicket}"
-					                Columns="{Binding DisplayedColumns}"
-					                PaperWidthMm="{Binding DisplayedPaperMm}" />
-				</ScrollViewer>
-			</DockPanel>
-		</Border>
-
-		<GridSplitter Grid.Row="3" Background="Transparent" ResizeDirection="Rows" />
-
-		<!-- Journal -->
-		<Border Grid.Row="4" Classes="card" Margin="10,0,10,10">
-			<DockPanel>
-				<TextBlock DockPanel.Dock="Top" Classes="heading" Text="Journal des arrivées" Margin="0,0,0,6" />
-				<ListBox Name="JournalList" ItemsSource="{Binding JournalLines}" Background="Transparent"
-				         FontFamily="avares://MimaEmuPrinter/Assets/Fonts#Liberation Mono" FontSize="12">
-					<ListBox.ItemTemplate>
-						<DataTemplate x:DataType="vm:JournalLineViewModel">
-							<TextBlock Text="{Binding Text}" Classes.danger="{Binding IsError}"
-							           Classes.warning="{Binding IsWarning}" Classes.info="{Binding IsJob}" />
-						</DataTemplate>
-					</ListBox.ItemTemplate>
-					<ListBox.Styles>
-						<Style Selector="ListBoxItem">
-							<Setter Property="Padding" Value="4,1" />
-							<Setter Property="MinHeight" Value="0" />
-						</Style>
-					</ListBox.Styles>
-				</ListBox>
-			</DockPanel>
-		</Border>
-	</Grid>
+				</DockPanel>
+			</Border>
+		</Grid>
+	</DockPanel>
 </Window>

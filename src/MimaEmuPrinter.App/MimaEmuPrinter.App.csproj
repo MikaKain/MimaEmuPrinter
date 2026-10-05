@@ -4,7 +4,7 @@
 		<OutputType>WinExe</OutputType>
 		<AssemblyName>MimaEmuPrinter</AssemblyName>
 		<RootNamespace>MimaEmuPrinter.App</RootNamespace>
-		<ApplicationIcon />
+		<ApplicationIcon>Assets/app.ico</ApplicationIcon>
 		<BuiltInComInteropSupport>false</BuiltInComInteropSupport>
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<SatelliteResourceLanguages>en</SatelliteResourceLanguages>
@@ -23,6 +23,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<AvaloniaResource Include="Assets/app.png" />
 		<AvaloniaResource Include="..\MimaEmuPrinter.Core\Assets\Fonts\*.ttf">
 			<Link>Assets\Fonts\%(Filename)%(Extension)</Link>
 		</AvaloniaResource>

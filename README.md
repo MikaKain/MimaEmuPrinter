@@ -38,6 +38,8 @@ Options de ligne de commande, pour l'automatisation : `--start` (écoute dès le
    - Le bouton de thème de l'en-tête fait défiler *auto* (suit le système), *clair* et *sombre* ; le choix est enregistré dans `settings.json`. Dans le journal, les échecs et refus sont en rouge, les dépassements de colonne et jobs non imprimés / tronqués en orange, les jobs clos en bleu.
    - **Arrêter le service** ferme l'écoute et la connexion ouverte, et ramène l'écran de réglages.
 
+L'icône de l'application est `src/MimaEmuPrinter.App/Assets/app.ico` (icône de l'exécutable) et `app.png` (fenêtres, barre de titre). Sous Windows la barre de titre est dessinée par l'application pour suivre le thème clair / sombre ; macOS et Linux gardent leur barre native.
+
 ## Architecture
 
 ```
