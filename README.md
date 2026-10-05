@@ -10,12 +10,18 @@ Spécification : `MimaEmuPrinter-cahier-des-charges.pdf` (v1.0). C# / .NET 10, i
 dotnet run --project src/MimaEmuPrinter.App
 ```
 
-Ou publier un binaire (runtime .NET 10 requis sur la machine cible) :
+Pour produire une version standalone (runtime .NET embarqué, rien à installer sur la machine cible) dans `publish/<plateforme>/` :
 
-```bash
-dotnet publish src/MimaEmuPrinter.App -c Release -r win-x64 --self-contained false
-dotnet publish src/MimaEmuPrinter.App -c Release -r linux-x64 --self-contained false
-dotnet publish src/MimaEmuPrinter.App -c Release -r osx-arm64 --self-contained false
+```powershell
+./publish.ps1                                   # win-x64
+./publish.ps1 -Runtime win-x64, linux-x64, osx-arm64
+./publish.ps1 -SingleFile                       # un seul fichier exécutable
+```
+
+Depuis `cmd.exe`, les `.ps1` s'ouvrent dans un éditeur au lieu de s'exécuter : utiliser le lanceur `publish.cmd` (mêmes options, `.cmd` à écrire en entier car le dossier `publish\` existe) :
+
+```bat
+.\publish.cmd -SingleFile
 ```
 
 Le dossier de travail de l'application est le dossier de l'exécutable. On y trouve :
